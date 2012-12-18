@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension id="multicom_plugin" status="unreleased" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+	<name>Database Integration Manager</name>
+	<description>Manages database versioning and multi-developer working across many local work databases.</description>
+	<url type="discuss">http://www.devjet.co.uk</url>
+	<types>
+		<type>Custom</type>
+	</types>
+	<authors>
+		<author>
+			<name github="jetbackwards" symphony="team">Tom Johnson</name>
+			<website>http://www.devjet.co.uk</website>
+		</author>
+		<author>
+			<name github="davjand" symphony="team">Dave Anderson</name>
+			<website>http://veodesign.co.uk</website>
+		</author>
+	</authors>
+	<releases>
+		<release version="0.0.1" date="2012-11-28" min="2.3">
+			Project Begins.
+		</release>
+	</releases>	
+</extension>
