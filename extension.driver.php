@@ -1,5 +1,7 @@
 <?php
 
+	require_once(EXTENSIONS . "/database_integration_manager/lib/client.class.php");
+
 	class extension_database_integration_manager extends Extension {
 
 		static $_CONFIG_FILE = "/config.php";
@@ -102,24 +104,7 @@
 			if(self::getDatabaseSettings() != null) {
 				switch($settings["mode"]["mode"]) {
 					case "client":
-						if($settings["client"]["server-url"] != "") {
-
-							// check if the supplied URL exists
-							if(self::isActiveUrl($settings["client"]["server-url"])) {
-								// PASSED ALL THE TESTS
-								return true;
-							}
-							else {
-								// FAILED - inactive URL
-								return false;
-							}
-							
-						}
-						else {
-							// FAILED - no URL given
-							return false;
-						}
-						
+						return DIM_Client::testClientSettings($settings["client"]);
 						break;
 					case "server":
 						// PASSED - no settings needed
@@ -130,7 +115,7 @@
 						return true;
 						break;
 					default:
-						// FAILED - something weird happened!
+						// FAILED - something weird happened!					
 						return false;
 						break;
 				}
@@ -139,48 +124,7 @@
 			else {
 				return false;
 			}
-		}
-	
-		/*
-			::isActiveUrl($url)
-			Determines if the current URL is alive - taken from http://www.secondversion.com/blog/php-check-if-a-url-is-valid-exists/
-			@params
-				$url - the URL to test
-			@returns
-				true/false based on success or failure
-		*/
-		private static function isActiveUrl($url)
-		{
-			if (!($url = @parse_url($url)))
-			{
-				return false;
-			}
-		 
-			$url['port'] = (!isset($url['port'])) ? 80 : (int)$url['port'];
-			$url['path'] = (!empty($url['path'])) ? $url['path'] : '/';
-			$url['path'] .= (isset($url['query'])) ? "?$url[query]" : '';
-		 
-			if (isset($url['host']) AND $url['host'] != @gethostbyname($url['host']))
-			{
-				if (PHP_VERSION >= 5)
-				{
-					$headers = @implode('', @get_headers("$url[scheme]://$url[host]:$url[port]$url[path]"));
-				}
-				else
-				{
-					if (!($fp = @fsockopen($url['host'], $url['port'], $errno, $errstr, 10)))
-					{
-						return false;
-					}
-					fputs($fp, "HEAD $url[path] HTTP/1.1\r\nHost: $url[host]\r\n\r\n");
-					$headers = fread($fp, 4096);
-					fclose($fp);
-				}
-				return (bool)preg_match('#^HTTP/.*\s+[(200|301|302)]+\s#i', $headers);
-			}
-			return false;
-		}
-		
+		}		
 	}
 
 ?>
