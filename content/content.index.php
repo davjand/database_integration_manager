@@ -15,8 +15,8 @@ require_once(TOOLKIT . '/class.datasourcemanager.php');
 require_once(CORE . '/class.cacheable.php');
 require_once(CORE . '/class.administration.php');
 
-require_once(EXTENSIONS . '/symphony_checkout/data-sources/data.available_gateways.php');
 
+require_once(EXTENSIONS . '/database_integration_manager/lib/server.class.php');
 
 class contentExtensionDatabase_integration_managerIndex extends AdministrationPage	
 {	
@@ -56,6 +56,24 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 	*/	
 	public function action() {
 		if(isset($_POST["action"]["save"])) {
+
+			// transform the users array...
+			if(is_array($_POST["settings"]["server"]["users"])) {
+				$transformedArray = array();
+				for($i=0;$i<count($_POST["settings"]["server"]["users"]["firstname"]);$i++) {
+					$userArray = array(
+							"firstname" => $_POST["settings"]["server"]["users"]["firstname"][$i],
+							"lastname" => $_POST["settings"]["server"]["users"]["lastname"][$i],
+							"email" => $_POST["settings"]["server"]["users"]["email"][$i],
+							"created-by" => $_POST["settings"]["server"]["users"]["created-by"][$i],
+						);
+					// generate the authentication key
+					$passedAuthKey = $_POST["settings"]["server"]["users"]["auth-key"][$i];
+					$userArray["auth-key"] = ($passedAuthKey == "save-to-generate" ? DIM_Server::generateAuthenticationKey($userArray) : $passedAuthKey); 
+					$transformedArray[] = $userArray;					
+				}			
+				$_POST["settings"]["server"]["users"] = $transformedArray;
+			}			
 			
 			if(extension_database_integration_manager::testSettings($_POST["settings"])) {
 				file_put_contents(extension_database_integration_manager::getExtensionConfigPath(), "<?php \$savedSettings = " . var_export($_POST["settings"], true) . "; ?>");
@@ -122,6 +140,48 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$serverFieldset = new XMLElement('fieldset');
 		$serverFieldset->setAttribute("class", "settings pickable");
 		$serverFieldset->setAttribute("id", "server");
+		
+		$this->Form->appendChild(new XMLElement('script', 'jQuery(document).ready(function(){jQuery("#users-duplicator").symphonyDuplicator({orderable: true, collapsible: true});});'));		
+		
+		$serverUserFrame = new XMLElement('div', null, array('class' => 'frame'));
+		$ol = new XMLElement('ol');
+		$ol->setAttribute('id', 'users-duplicator');
+		$ol->setAttribute('data-add', __('Add User'));
+		$ol->setAttribute('data-remove', __('Remove User'));
+
+		if(is_array($savedSettings["server"]["users"])) {
+			foreach($savedSettings["server"]["users"] as $u) {
+				$ol->appendChild($this->__getUserInputBlock($u));
+			}
+		}
+		/*
+		$templateWrapper = new XMLElement('li', NULL, array('class' => 'template field-user'));
+		$templateWrapper->setAttribute('data-type', 'user');
+		$templateHeader = new XMLElement('header', "New User", array("class" => "main"));
+		$templateWrapper->appendChild($templateHeader);
+		$serverUserFirstnameLabel = Widget::Label("User First Name");
+		$serverUserFirstnameLabel->appendChild(Widget::Input("settings[server][users][][firstname]", ""));
+		$templateWrapper->appendChild($serverUserFirstnameLabel);		
+		$serverUserLastnameLabel = Widget::Label("User Last Name");
+		$serverUserLastnameLabel->appendChild(Widget::Input("settings[server][users][][lastname]", ""));
+		$templateWrapper->appendChild($serverUserLastnameLabel);		
+		$serverUserEmailLabel = Widget::Label("User Email Name");
+		$serverUserEmailLabel->appendChild(Widget::Input("settings[server][users][][email]", ""));
+		$templateWrapper->appendChild($serverUserEmailLabel);
+		$serverUserCreatedByLabel = Widget::Label("Created By");
+		$serverUserCreatedByLabel->appendChild(Widget::Input("settings[server][users][][created-by]", ""));
+		$templateWrapper->appendChild($serverUserCreatedByLabel);		
+		$serverUserAuthKeyLabel = Widget::Label("Authentication Key");
+		$serverUserAuthKeyLabel->appendChild(Widget::Input("settings[server][users][][auth-key]", "", "text", array("disabled" => "disabled")));
+		$templateWrapper->appendChild($serverUserAuthKeyLabel);		
+		*/
+		
+		// append the template
+		$ol->appendChild($this->__getUserInputBlock(array(), true));
+		
+		$serverUserFrame->appendChild($ol);
+		$serverFieldset->appendChild($serverUserFrame);
+		
 		$this->Form->appendChild($serverFieldset);
 	
 		// Default/Disabled Settings Block
@@ -136,6 +196,40 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$saveDiv->appendChild(Widget::Input('action[save]', __('Save Settings'), 'submit', array('accesskey' => 's')));
 		$this->Form->appendChild($saveDiv);			
 	}
+	
+	/*
+		->__getUserInputBlock($data)
+		Returns an XML element containing all the user elements populated with the data specified
+		@params
+			$data - an array of user data, can be empty
+			$template - should this be a template block?
+		@return
+			XMLElement - the li for the block
+	*/
+	private function __getUserInputBlock($data, $template = false) {
+	
+		$wrapper = new XMLElement('li', NULL, array('class' =>  ($template ? 'template' : null) . ' field-user'));
+		$wrapper->setAttribute('data-type', 'user');
+		$header = new XMLElement('header', ($template ? '<strong>New User</strong>' : $data['firstname'] . ' ' . $data['lastname']) , array("class" => "main"));
+		$wrapper->appendChild($header);
+		$serverUserFirstnameLabel = Widget::Label("First Name");
+		$serverUserFirstnameLabel->appendChild(Widget::Input("settings[server][users][firstname][]", $data['firstname']));
+		$wrapper->appendChild($serverUserFirstnameLabel);		
+		$serverUserLastnameLabel = Widget::Label("Last Name");
+		$serverUserLastnameLabel->appendChild(Widget::Input("settings[server][users][lastname][]", $data['lastname']));
+		$wrapper->appendChild($serverUserLastnameLabel);		
+		$serverUserEmailLabel = Widget::Label("Email");
+		$serverUserEmailLabel->appendChild(Widget::Input("settings[server][users][email][]", $data['email']));
+		$wrapper->appendChild($serverUserEmailLabel);
+		$serverUserCreatedByLabel = Widget::Label("Created By");
+		$serverUserCreatedByLabel->appendChild(Widget::Input("settings[server][users][created-by][]", $data['created-by']));
+		$wrapper->appendChild($serverUserCreatedByLabel);		
+		$serverUserAuthKeyLabel = Widget::Label("Authentication Key");
+		$serverUserAuthKeyLabel->appendChild(Widget::Input("settings[server][users][auth-key][]", ($template ? "save-to-generate" : $data['auth-key']), "text"));
+		$wrapper->appendChild($serverUserAuthKeyLabel);	
 
+		return $wrapper;
+	
+	}
 }
 

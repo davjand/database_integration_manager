@@ -5,7 +5,30 @@
 	class extension_database_integration_manager extends Extension {
 
 		static $_CONFIG_FILE = "/config.php";
-	
+
+		/*
+			->install()
+			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#install
+		*/
+		public function install() {
+		
+		}
+		
+		/*
+			->update($previousVersion)
+			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#update
+		*/
+		public function update() {
+		
+		}
+		
+		/*
+			->uninstall()
+			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#uninstall
+		*/
+		public function uninstall() {
+		
+		}		
 	
 		/*
 			->fetchNavigation()
@@ -32,6 +55,11 @@
 					'page' => '/backend/',
 					'delegate' => 'AppendPageAlert',
 					'callback' => 'appendAlerts'
+				),
+				array(
+					'page'		=> '/backend/',
+					'delegate'	=> 'NavigationPreRender',
+					'callback'	=> 'modifyNavigation'
 				)
 			);
 		}
@@ -50,21 +78,31 @@
 		}
 		
 		/*
-			->install()
-			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#install
+			->modifyNavigation($navigation)
+			Modify the Symphony admin navigation according to the current mode.
 		*/
-		public function install() {
+		public function modifyNavigation(&$navigation) {
+			if(self::isExtensionConfigured()) {
+				switch(self::getExtensionMode()) {
+					case "client":
+						
+						break;
+					case "server":						
+						// clear out the blueprints
+						$navigation["navigation"][200] = array();
+						break;
+					case "disabled":
+						
+						// we're disabled - don't do anything!
+						break;
+				}			
+			}
+			else {
+				// clear all navigation items - the user will be able to get to the config via the alert.
+				$navigation["navigation"] = array();
+			}		
+		}		
 		
-		}
-		
-		/*
-			->uninstall()
-			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#uninstall
-		*/
-		public function uninstall() {
-		
-		}
-
 		/*
 			::isExtensionConfigured()
 			Returns true if a current configuration exists
@@ -124,7 +162,24 @@
 			else {
 				return false;
 			}
-		}		
+		}
+
+		/*
+			::getExtensionMode()
+			Get the currently set extension mode.
+			@returns
+				'server', 'client' or 'disabled'
+		*/
+		public static function getExtensionMode() {
+			if(self::isExtensionConfigured()) {
+				include(self::getExtensionConfigPath());
+				return $savedSettings["mode"]["mode"];				
+			}
+			else{
+				return "disabled";
+			}		
+		}
+		
 	}
 
 ?>
