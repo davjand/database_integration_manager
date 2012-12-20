@@ -8,6 +8,27 @@
 class DIM_Server {
 
 	/*
+		->__construct()
+	*/
+	public __construct() {
+	
+	}
+	
+	/*
+		->handleRequest($requestData)
+		The main server method! Is responsible for shuffling everything
+		round and returning a value to the client.
+		@params
+			$requestData - the data sent by the client
+		@returns
+			mixed - the result of the request.
+	*/
+	public function handleRequest($requestData) {
+	
+	
+	}
+
+	/*
 		::generateAuthenticationKey($userData)
 		Generates a secure key partially based on the user data supplied
 		@params
@@ -29,7 +50,7 @@ class DIM_Server {
 		return $tmpA;
 		
 	}
-
+	
 }
 
 

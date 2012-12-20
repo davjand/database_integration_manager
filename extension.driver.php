@@ -1,10 +1,9 @@
 <?php
 
 	require_once(EXTENSIONS . "/database_integration_manager/lib/client.class.php");
-
+	require_once(EXTENSIONS . "/database_integration_manager/lib/configuration.class.php");
+	
 	class extension_database_integration_manager extends Extension {
-
-		static $_CONFIG_FILE = "/config.php";
 
 		/*
 			->install()
@@ -69,7 +68,7 @@
 			Adds an alert to the administration pages if DIM is installed but not configured.
 		*/
 		public function appendAlerts($context) {
-			if(!self::isExtensionConfigured()) {
+			if(!DIM_Configuration::isExtensionConfigured()) {
 				Administration::instance()->Page->pageAlert(
 					__('Database Integration Manager is installed but not configured. <a href=\'' . SYMPHONY_URL . '/extension/database_integration_manager\'>Configure it now</a>.'),
 					Alert::ERROR
@@ -82,8 +81,8 @@
 			Modify the Symphony admin navigation according to the current mode.
 		*/
 		public function modifyNavigation(&$navigation) {
-			if(self::isExtensionConfigured()) {
-				switch(self::getExtensionMode()) {
+			if(DIM_Configuration::isExtensionConfigured()) {
+				switch(DIM_Configuration::getExtensionMode()) {
 					case "client":
 						
 						break;
@@ -102,34 +101,7 @@
 				$navigation["navigation"] = array();
 			}		
 		}		
-		
-		/*
-			::isExtensionConfigured()
-			Returns true if a current configuration exists
-		*/
-		public static function isExtensionConfigured() {
-			return file_exists(self::getExtensionConfigPath());	
-		}
-		
-		/*
-			::getExtensionConfigPath()
-			Returns the fully qualified path of the extension configuration file
-		*/
-		public static function getExtensionConfigPath() {
-			return (dirname(__FILE__) . "/" . self::$_CONFIG_FILE);
-		}
 
-		/*
-			::getDatabaseSettings() 
-			Gets the Symphony database settings
-			@returns
-				array("host" => , "port" => , "user" => , "password" => , "db" => , "tbl_prefix" => )
-		*/
-		public static function getDatabaseSettings() {
-			include(MANIFEST . "/config.php");
-			return $settings["database"];
-		}
-	
 		/*
 			::testSettings($settings)
 			Run tests on the user-supplied settings to determine their integrity.
@@ -139,7 +111,7 @@
 				true/false based on test result
 		*/
 		public static function testSettings($settings) {
-			if(self::getDatabaseSettings() != null) {
+			if(DIM_Configuration::getDatabaseSettings() != null) {
 				switch($settings["mode"]["mode"]) {
 					case "client":
 						return DIM_Client::testClientSettings($settings["client"]);
@@ -162,22 +134,6 @@
 			else {
 				return false;
 			}
-		}
-
-		/*
-			::getExtensionMode()
-			Get the currently set extension mode.
-			@returns
-				'server', 'client' or 'disabled'
-		*/
-		public static function getExtensionMode() {
-			if(self::isExtensionConfigured()) {
-				include(self::getExtensionConfigPath());
-				return $savedSettings["mode"]["mode"];				
-			}
-			else{
-				return "disabled";
-			}		
 		}
 		
 	}

@@ -17,6 +17,7 @@ require_once(CORE . '/class.administration.php');
 
 
 require_once(EXTENSIONS . '/database_integration_manager/lib/server.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/configuration.class.php');
 
 class contentExtensionDatabase_integration_managerIndex extends AdministrationPage	
 {	
@@ -76,7 +77,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 			}			
 			
 			if(extension_database_integration_manager::testSettings($_POST["settings"])) {
-				file_put_contents(extension_database_integration_manager::getExtensionConfigPath(), "<?php \$savedSettings = " . var_export($_POST["settings"], true) . "; ?>");
+				DIM_Configuration::saveConfiguration($_POST["settings"]);
 				$this->pageAlert(__('Configuration Settings updated successfully.'), Alert::SUCCESS);			
 			}
 			else {
