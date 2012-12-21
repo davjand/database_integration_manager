@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(__FILE__) "/../extension.driver.php");
+require_once(dirname(__FILE__) "/configuration.class.php");
 
 /*
 	DIM_Authenticator
@@ -27,8 +27,19 @@ class DIM_Authenticator {
 			true/false based on whether authentication was succesful
 	*/
 	public function userAuthenticates($email, $authKey) {
-		
-	
+		$cfg = DIM_Configuration::getConfiguration();
+		if($cfg && is_array($cfg["server"]["users"]) {
+			foreach($cfg["server"]["users"] as $u) {
+				if($email == $u['email'] && $authKey == $u['auth-key']) {
+					return true;
+				}			
+			}
+			// we haven't matched yet
+			return false;
+		}
+		else {
+			return false;
+		}
 	}
 }
 

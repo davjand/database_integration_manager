@@ -44,7 +44,7 @@ class DIM_Configuration {
 	*/
 	public static function getConfiguration() {
 		if(self::isExtensionConfigured()) {
-			include(self::getExtensionConfigPath())
+			include(self::getExtensionConfigPath());
 			return $savedSettings;
 		}
 		else{

@@ -76,7 +76,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 				$_POST["settings"]["server"]["users"] = $transformedArray;
 			}			
 			
-			if(extension_database_integration_manager::testSettings($_POST["settings"])) {
+			if(extension_database_integration_manager::testSettings($_POST["settings"])) {				
 				DIM_Configuration::saveConfiguration($_POST["settings"]);
 				$this->pageAlert(__('Configuration Settings updated successfully.'), Alert::SUCCESS);			
 			}
@@ -102,8 +102,8 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		
 		// Get the saved settings from the file - this will populate $savedSettings
 		$savedSettings = array();
-		if(extension_database_integration_manager::isExtensionConfigured()) {
-			include(extension_database_integration_manager::getExtensionConfigPath());
+		if(DIM_Configuration::isExtensionConfigured()) {
+			include(DIM_Configuration::getExtensionConfigPath());
 		}
 		
 		// The mode is the 'picker' - nice UI and also necessary for validation functioning

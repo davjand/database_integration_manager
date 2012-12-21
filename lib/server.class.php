@@ -1,5 +1,8 @@
 <?php
 
+require_once(dirname(__FILE__) . "/logger.class.php");
+require_once(dirname(__FILE__) . "/authenticator.class.php");
+
 /*
 	DIM_Server
 	
@@ -7,11 +10,13 @@
 */
 class DIM_Server {
 
+	var $authenticator = null;
+
 	/*
 		->__construct()
 	*/
-	public __construct() {
-	
+	public function __construct() {
+		$this->authenticator = new DIM_Authenticator();
 	}
 	
 	/*
@@ -24,8 +29,23 @@ class DIM_Server {
 			mixed - the result of the request.
 	*/
 	public function handleRequest($requestData) {
-	
-	
+		// this is a system entry point so we need to grab exceptions here
+		try {
+			switch($requestData["action"]) {
+				
+			
+			
+				case "test":
+					return "1";
+					break;
+				default:
+					return "0";
+					break;
+			}
+		}
+		catch(Exception $e) {
+			DIM_Logger::logException($e);
+		}
 	}
 
 	/*
