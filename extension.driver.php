@@ -10,6 +10,19 @@
 			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#install
 		*/
 		public function install() {
+			// MODIFYING THIS? ADD A VERSION UPDATE IN THE update() FUNCTION!
+		
+			try {
+				Symphony::Database()->query('CREATE TABLE IF NOT EXISTS tbl_dim_versions (
+											  `id` int(11) NOT NULL AUTO_INCREMENT,
+											  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+											  `version` int(11) NOT NULL,
+											  PRIMARY KEY (`id`)
+											  ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;');
+
+			} catch(Exception $e) { return false; }
+
+			return true;
 		
 		}
 		
@@ -17,7 +30,12 @@
 			->update($previousVersion)
 			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#update
 		*/
-		public function update() {
+		public function update($previousVersion) {
+		
+			if($previousVersion = "0.0.1") {
+			
+			
+			}
 		
 		}
 		

@@ -18,7 +18,7 @@ class DIM_Logger {
 			nothing
 	*/
 	public static function addLogItem($string, $class = 'generic', $data = array()) {
-		$newLogItem = array("text" => $string, "class" => $class, "data" => $data);
+		$newLogItem = array("timestamp" => date("d-m-Y H:i:s"), "text" => $string, "class" => $class, "data" => $data);
 		self::saveRawLogItem($newLogItem);
 	}	
 	

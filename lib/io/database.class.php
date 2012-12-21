@@ -1,13 +1,13 @@
 <?php
 
 /*
-	DIM_Database
+	Database_IO
 	
 	Our own database driver - to take us away from having to use Symphony as it
 	causes conflicts!
 */
 
-class DIM_Database {
+class Database_IO {
 
 	var $dbConnection = null;
 	var $tablePrefix = "";
@@ -39,13 +39,37 @@ class DIM_Database {
 		@params
 			$sql - the SQL statement to run.
 			$mode - the return mode of the query, see constants defined above
+			$suppressSanitize - allows suppression of auto-sanitize, in case it's already been done (optional, defaults to false)
 	*/
-	public function query($sql, $returnMode) {
+	public function query($sql, $returnMode, $suppressSanitize = false) {
 	
 		// transform the table prefixes first..
 		$sql = str_replace("tbl_", $this->tablePrefix, $sql);
+		
+		if(!$suppressSanitize) {
+			$sql = self::sanitize($sql, 1);
+		}
 
-	
+		$rawRet = mysql_query($sql, $this->dbConnection);
+		
+		switch($returnMode) {
+			case self::RETURN_VALUE:
+				$proc = mysql_fetch_array($rawRet);
+				return $proc[0];
+				break;
+			case self::RETURN_OBJECTS:
+				$objects = array();
+				while($newObj = mysql_fetch_object($rawRet)) {
+					$objects[] = $newObj;				
+				}
+				return $objects;
+				break;
+			case self::RETURN_NONE:
+			default:
+				return null;
+				break;
+		}
+		
 	}
 	
 	/*
@@ -88,7 +112,7 @@ class DIM_Database {
 			case 2:
 				// remove more risky SQL keywords
 				
-				$sql = str_ireplace(array("UPDATE", "DELETE", "TRUNCATE", "INSERT", "JOIN", "UNION", "HAVING", "CREATE"), "", $sql);
+				$sql = str_ireplace(array("UPDATE", "DELETE", "TRUNCATE", "DROP", "INSERT", "JOIN", "UNION", "HAVING", "CREATE"), "", $sql);
 				
 			case 1:
 				// just escape the string

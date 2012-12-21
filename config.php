@@ -1,7 +1,7 @@
 <?php $savedSettings = array (
   'mode' => 
   array (
-    'mode' => 'server',
+    'mode' => 'disabled',
   ),
   'client' => 
   array (
