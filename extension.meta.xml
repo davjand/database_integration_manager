@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension id="multicom_plugin" status="unreleased" xmlns="http://symphony-cms.com/schemas/extension/1.0">
+<extension id="database_integration_manager" status="unreleased" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>Database Integration Manager</name>
 	<description>Manages database versioning and multi-developer working across many local work databases.</description>
 	<url type="discuss">http://www.devjet.co.uk</url>

@@ -1,9 +1,8 @@
 <?php
-
 	require_once(EXTENSIONS . "/database_integration_manager/lib/client.class.php");
 	require_once(EXTENSIONS . "/database_integration_manager/lib/configuration.class.php");
 	
-	class extension_database_integration_manager extends Extension {
+	class Extension_database_integration_manager extends Extension {
 
 		/*
 			->install()
@@ -12,6 +11,8 @@
 		public function install() {
 		
 		}
+		
+
 		
 		/*
 			->update($previousVersion)
