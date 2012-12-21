@@ -47,6 +47,26 @@ class DIM_Server {
 			DIM_Logger::logException($e);
 		}
 	}
+	
+	/*
+		->handleCheckout($requestData)
+		Handles a checkout request
+		@params
+			$requestData - the data sent by the client
+	*/
+	private function handleCheckout($requestData) {
+	
+	}
+	
+	/*
+		->handleCheckin($requestData)
+		Handles a checkout request
+		@params
+			$requestData - the data sent by the client
+	*/
+	private function handleCheckin($requestData) {
+
+	}
 
 	/*
 		::generateAuthenticationKey($userData)
