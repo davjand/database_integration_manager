@@ -72,14 +72,18 @@ class DIM_Server extends DIM_Base {
 	private function handleCheckout($requestData) {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
 			if($this->state->isCheckedIn()) {
-				if($requestData["version"] == $this->versioning->getLatestVersion()) {
+				$latestVersion = $this->versioning->getLatestVersion();
+				if($requestData["version"] == $latestVersion) {
 					$this->state->checkOut();
 					$this->logger->addLogItem("Checked Out By {$requestData["email"]}", "state");
 					return "1";				
 				}
+				else if($requestData["version"] > $latestVersion) {
+					return "0:newer-version";
+				}
 				else {
 					return "0:old-version";
-				}
+				}	
 			}
 			else {
 				return "0:wrong-state";
