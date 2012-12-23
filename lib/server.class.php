@@ -73,6 +73,7 @@ class DIM_Server extends DIM_Base {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
 			if($this->state->isCheckedIn()) {
 				$this->state->checkOut();
+				$this->logger->addLogItem("Checked Out By {$requestData["email"]}", "state");
 				return "1";
 			}
 			else {
@@ -80,6 +81,7 @@ class DIM_Server extends DIM_Base {
 			}
 		}
 		else {
+			$this->logger->addLogItem("Unauthorised checkout attempt by {$requestData["email"]}", "security");
 			return "0:unauthed";
 		}
 	}
@@ -96,6 +98,7 @@ class DIM_Server extends DIM_Base {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
 			if($this->state->isCheckedOut()) {
 				$this->state->checkIn();
+				$this->logger->addLogItem("Checked In By {$requestData["email"]}", "state");
 				return "1";
 			}
 			else {
@@ -103,6 +106,7 @@ class DIM_Server extends DIM_Base {
 			}		
 		}
 		else {
+			$this->logger->addLogItem("Unauthorised checkin attempt by {$requestData["email"]}", "security");
 			return "0:unauthed";
 		}
 	}

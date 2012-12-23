@@ -18,6 +18,8 @@ require_once(CORE . '/class.administration.php');
 
 require_once(EXTENSIONS . '/database_integration_manager/lib/server.class.php');
 require_once(EXTENSIONS . '/database_integration_manager/lib/base.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/statemanager.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/logger.class.php');
 
 class contentExtensionDatabase_integration_managerIndex extends AdministrationPage	
 {	
@@ -85,7 +87,10 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 				$_POST["settings"]["server"]["users"] = $transformedArray;
 			}			
 			
-			if(extension_database_integration_manager::testSettings($_POST["settings"])) {				
+			if(extension_database_integration_manager::testSettings($_POST["settings"])) {
+				$logger = new DIM_Logger();
+				$logger->addLogItem("Configuration Updated", "system");
+				
 				$this->config->saveConfiguration($_POST["settings"]);
 				$this->pageAlert(__('Configuration Settings updated successfully.'), Alert::SUCCESS);			
 			}
@@ -143,10 +148,15 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$clientFieldset->appendChild($liveServerUrlLabel);
 		$this->Form->appendChild($clientFieldset);
 
-		// Server Settings Block
+		// Server Settings Block	
 		$serverFieldset = new XMLElement('fieldset');
 		$serverFieldset->setAttribute("class", "settings pickable");
 		$serverFieldset->setAttribute("id", "server");
+
+		$stateManager = new DIM_StateManager();
+		$stateText = ($stateManager->isCheckedOut() ? "Checked Out" : "Checked In");
+		
+		$serverFieldset->appendChild(new XMLElement('div', "<a href='log'>View Log</a> &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));	
 		
 		$this->Form->appendChild(new XMLElement('script', 
 			'jQuery(document).ready(function(){
@@ -169,27 +179,6 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 				$ol->appendChild($this->__getUserInputBlock($u));
 			}
 		}
-		/*
-		$templateWrapper = new XMLElement('li', NULL, array('class' => 'template field-user'));
-		$templateWrapper->setAttribute('data-type', 'user');
-		$templateHeader = new XMLElement('header', "New User", array("class" => "main"));
-		$templateWrapper->appendChild($templateHeader);
-		$serverUserFirstnameLabel = Widget::Label("User First Name");
-		$serverUserFirstnameLabel->appendChild(Widget::Input("settings[server][users][][firstname]", ""));
-		$templateWrapper->appendChild($serverUserFirstnameLabel);		
-		$serverUserLastnameLabel = Widget::Label("User Last Name");
-		$serverUserLastnameLabel->appendChild(Widget::Input("settings[server][users][][lastname]", ""));
-		$templateWrapper->appendChild($serverUserLastnameLabel);		
-		$serverUserEmailLabel = Widget::Label("User Email Name");
-		$serverUserEmailLabel->appendChild(Widget::Input("settings[server][users][][email]", ""));
-		$templateWrapper->appendChild($serverUserEmailLabel);
-		$serverUserCreatedByLabel = Widget::Label("Created By");
-		$serverUserCreatedByLabel->appendChild(Widget::Input("settings[server][users][][created-by]", ""));
-		$templateWrapper->appendChild($serverUserCreatedByLabel);		
-		$serverUserAuthKeyLabel = Widget::Label("Authentication Key");
-		$serverUserAuthKeyLabel->appendChild(Widget::Input("settings[server][users][][auth-key]", "", "text", array("disabled" => "disabled")));
-		$templateWrapper->appendChild($serverUserAuthKeyLabel);		
-		*/
 		
 		// append the template
 		$ol->appendChild($this->__getUserInputBlock(array(), true));
@@ -248,3 +237,4 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 	}
 }
 
+?>
