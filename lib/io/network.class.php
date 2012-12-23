@@ -10,14 +10,17 @@ class Network_IO {
 
 	/*
 		::makeServerRequest()
-		Makes a CURL request to the configured server and
+		Makes a CURL request to the specified host and
 		returns the result.
-		@params 
+		@params
+			$host - the host to send the request to
 			$data - array(), the data to send to the server.
 		@returns
 			mixed - whatever the server returns
 	*/
-	public static function makeServerRequest($url, $data) {
+	public static function makeServerRequest($host, $data) {
+
+		$url = self::getUrlFromHost($host);
 
 		$str = array();
 		foreach($data as $key => $value){
@@ -47,15 +50,16 @@ class Network_IO {
 	}
 
 	/*
-		::isActiveUrl($url)
-		Determines if the current URL is alive - taken from http://www.secondversion.com/blog/php-check-if-a-url-is-valid-exists/
+		::isActiveUrl($host)
+		Determines if the specified host is alive - taken from http://www.secondversion.com/blog/php-check-if-a-url-is-valid-exists/
 		@params
-			$url - the URL to test
+			$host - the host to test
 		@returns
 			true/false based on success or failure
 	*/
-	public static function isActiveUrl($url)
+	public static function isActiveUrl($host)
 	{
+		$url = self::getUrlFromHost($host);
 		
 		if (!($url = @parse_url($url)))
 		{
@@ -86,6 +90,19 @@ class Network_IO {
 		}
 		
 		return false;
+	}
+	
+	/*
+		::getUrlFromHost($host)
+		Returns the full request URL from the specified host.
+		@params
+			$host - the host to get the URL for.
+		@returns
+			string - the full URL.
+	*/
+	public static function getUrlFromHost($host) {		
+		$url = "http://{$host}/extensions/database_integration_manager/server/index.php";
+		return $url;
 	}
 	
 }

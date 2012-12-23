@@ -132,8 +132,8 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$clientFieldset = new XMLElement('fieldset');
 		$clientFieldset->setAttribute("class", "settings pickable");
 		$clientFieldset->setAttribute("id", "client");
-		$liveServerUrlLabel = Widget::Label("Live Server URL");
-		$liveServerUrlLabel->appendChild(Widget::Input("settings[client][server-url]", $savedSettings["client"]["server-url"]));
+		$liveServerUrlLabel = Widget::Label("Live Server Host or IP (can append a subdirectory if required)");
+		$liveServerUrlLabel->appendChild(Widget::Input("settings[client][server-host]", $savedSettings["client"]["server-host"]));
 		$clientFieldset->appendChild($liveServerUrlLabel);
 		$this->Form->appendChild($clientFieldset);
 

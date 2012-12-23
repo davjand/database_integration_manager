@@ -6,8 +6,11 @@
 	Deals with configuration - try to keep everything static!!
 */
 class DIM_Configuration {
-
-	static $_CONFIG_FILE = "/config.php";
+	
+	/*
+		Needs to be stored in the manifest folder.
+	*/
+	static $_CONFIG_FILE = "/../../manifest/dim_config.php";
 
 	/*
 		::isExtensionConfigured()

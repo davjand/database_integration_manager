@@ -16,10 +16,10 @@ class DIM_Client {
 			true/false - based on the test result
 	*/
 	public static function testClientSettings($settings) {
-		if($settings["server-url"] != "") {
+		if($settings["server-host"] != "") {
 			// check if the supplied URL exists
-			if(Network_IO::isActiveUrl($settings["server-url"])) {
-				if(self::makeTestServerRequest($settings["server-url"])) {
+			if(Network_IO::isActiveUrl($settings["server-host"])) {
+				if(self::makeTestServerRequest($settings["server-host"])) {
 					// PASSED
 					return true;
 				}
@@ -44,9 +44,8 @@ class DIM_Client {
 		@returns
 			true/false - based on the test result
 	*/
-	private static function makeTestServerRequest($url) {		
-		$serverResponse = Network_IO::makeServerRequest($url, array("action" => "test"));
-		echo($serverResponse);
+	private static function makeTestServerRequest($host) {		
+		$serverResponse = Network_IO::makeServerRequest($host, array("action" => "test"));
 		if($serverResponse == "1") {
 			return true;
 		}
