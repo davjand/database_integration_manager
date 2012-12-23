@@ -1,6 +1,7 @@
 <?php
 	require_once(EXTENSIONS . "/database_integration_manager/lib/client.class.php");
 	require_once(EXTENSIONS . "/database_integration_manager/lib/base.class.php");
+	require_once(EXTENSIONS . "/database_integration_manager/lib/statemanager.class.php");
 	
 	class Extension_database_integration_manager extends Extension {
 
@@ -114,7 +115,11 @@
 			if($this->config->isExtensionConfigured()) {
 				switch($this->config->getExtensionMode()) {
 					case "client":
-						
+						$stateManager = new DIM_StateManager("client");
+						if(!$stateManager->isCheckedOut()) {
+							// clear out the blueprints
+							$navigation["navigation"][200] = array();							
+						}
 						break;
 					case "server":						
 						// clear out the blueprints

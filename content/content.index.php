@@ -17,6 +17,7 @@ require_once(CORE . '/class.administration.php');
 
 
 require_once(EXTENSIONS . '/database_integration_manager/lib/server.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/client.class.php');
 require_once(EXTENSIONS . '/database_integration_manager/lib/base.class.php');
 require_once(EXTENSIONS . '/database_integration_manager/lib/statemanager.class.php');
 require_once(EXTENSIONS . '/database_integration_manager/lib/logger.class.php');
@@ -113,6 +114,29 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$this->setPageType('form');
 		$this->appendSubheading(__('DIM Configuration'));		
 
+		// Checkout/in?
+		if(isset($_GET["try"])) {
+			$client = new DIM_Client();
+			$errorStr = "";
+			switch($_GET["try"]) {
+				case "checkout":
+					if($client->requestCheckout(&$errorStr)) {
+						$this->pageAlert(__('Database checked out!'), Alert::SUCCESS);			
+					}
+					else {
+						$this->pageAlert(__("Checkout Failed - '{$errorStr}'"), Alert::ERROR);					
+					}
+					break;
+				case "checkin":
+					if($client->requestCheckin(&$errorStr)) {
+						$this->pageAlert(__('Database checked in!'), Alert::SUCCESS);			
+					}
+					else {
+						$this->pageAlert(__("Checkin Failed - '{$errorStr}'"), Alert::ERROR);					
+					}
+					break;
+			}
+		}		
 		
 		// Get the saved settings from the file - this will populate $savedSettings
 		$savedSettings = $this->config->getConfiguration();
@@ -146,6 +170,28 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$liveServerUrlLabel = Widget::Label("Live Server Host or IP (can append a subdirectory if required)");
 		$liveServerUrlLabel->appendChild(Widget::Input("settings[client][server-host]", $savedSettings["client"]["server-host"]));
 		$clientFieldset->appendChild($liveServerUrlLabel);
+		
+		$emailAddressLabel = Widget::Label("Email Address");
+		$emailAddressLabel->appendChild(Widget::Input("settings[client][user-email]", $savedSettings["client"]["user-email"]));
+		$clientFieldset->appendChild($emailAddressLabel);
+		
+		$authKeyLabel = Widget::Label("Authentication Key");
+		$authKeyLabel->appendChild(Widget::Input("settings[client][auth-key]", $savedSettings["client"]["auth-key"]));
+		$clientFieldset->appendChild($authKeyLabel);
+
+		$stateManager = new DIM_StateManager("client");
+		$stateText = "";
+		$linkText = "";
+		if($stateManager->isCheckedOut()) {
+			$stateText = "Checked Out";
+			$linkText = "<a href='?try=checkin'>Check In</a>";		
+		}
+		else {
+			$stateText = "Checked In";
+			$linkText = "<a href='?try=checkout'>Check Out</a>";			
+		}
+		$clientFieldset->appendChild(new XMLElement('div', "{$linkText} &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));			
+		
 		$this->Form->appendChild($clientFieldset);
 
 		// Server Settings Block	
@@ -153,7 +199,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$serverFieldset->setAttribute("class", "settings pickable");
 		$serverFieldset->setAttribute("id", "server");
 
-		$stateManager = new DIM_StateManager();
+		$stateManager = new DIM_StateManager("server");
 		$stateText = ($stateManager->isCheckedOut() ? "Checked Out" : "Checked In");
 		
 		$serverFieldset->appendChild(new XMLElement('div', "<a href='log'>View Log</a> &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));	

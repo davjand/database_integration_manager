@@ -24,7 +24,7 @@ class DIM_Server extends DIM_Base {
 	public function __construct() {
 		$this->authenticator = new DIM_Authenticator();
 		$this->versioning = new DIM_Versioning();
-		$this->state = new DIM_StateManager();
+		$this->state = new DIM_StateManager("server");
 		$this->logger = new DIM_Logger();
 	}
 	
@@ -51,13 +51,13 @@ class DIM_Server extends DIM_Base {
 					return "1";
 					break;
 				default:
-					return "0:error";
+					return "0:query-error";
 					break;
 			}
 		}
 		catch(Exception $e) {
 			$this->logger->logException($e);
-			return "-1:error";
+			return "0:internal-error";
 		}
 	}
 	
@@ -102,7 +102,8 @@ class DIM_Server extends DIM_Base {
 	private function handleCheckin($requestData) {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
 			if($this->state->isCheckedOut()) {
-				if($requestData["old-version"] == $this->versioning->getLatestVersion()) {
+				$latestVersion = $this->versioning->getLatestVersion();
+				if($requestData["old-version"] == $latestVersion) {
 					$this->state->checkIn();
 					$this->logger->addLogItem("Checked In By {$requestData["email"]}", "state");
 					$newVersion = $this->versioning->addNewVersion();
@@ -110,6 +111,7 @@ class DIM_Server extends DIM_Base {
 					return "1:{$newVersion}";					
 				}
 				else {
+					$this->logger->addLogItem("{$requestData["email"]} attempted checkin with version {$requestData["old-version"]}, expected {$latestVersion}");
 					return "0:old-version-incorrect";
 				}
 			}
