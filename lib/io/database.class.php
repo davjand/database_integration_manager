@@ -30,7 +30,7 @@ class Database_IO {
 		$this->dbConnection = mysql_connect($databaseParams["host"] . ":" . $databaseParams["port"], $databaseParams["user"], $databaseParams["password"]);
 		mysql_select_db($databaseParams["db"], $this->dbConnection);
 		
-		$this->tablePrefix($databaseParams["tbl_prefix"]);
+		$this->tablePrefix = $databaseParams["tbl_prefix"];
 	}
 	
 	/*
@@ -53,18 +53,18 @@ class Database_IO {
 		$rawRet = mysql_query($sql, $this->dbConnection);
 		
 		switch($returnMode) {
-			case self::RETURN_VALUE:
+			case RETURN_VALUE:
 				$proc = mysql_fetch_array($rawRet);
 				return $proc[0];
 				break;
-			case self::RETURN_OBJECTS:
+			case RETURN_OBJECTS:
 				$objects = array();
 				while($newObj = mysql_fetch_object($rawRet)) {
 					$objects[] = $newObj;				
 				}
 				return $objects;
 				break;
-			case self::RETURN_NONE:
+			case RETURN_NONE:
 			default:
 				return null;
 				break;

@@ -1,5 +1,9 @@
 <?php
 
+if(!defined("MANIFEST")) {
+	define("MANIFEST", dirname(__FILE__) . "/../../../manifest");
+}
+
 /*
 	DIM_Base
 	

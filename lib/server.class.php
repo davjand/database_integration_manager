@@ -39,7 +39,7 @@ class DIM_Server extends DIM_Base {
 	*/
 	public function handleRequest($requestData) {
 		// this is a system entry point so we need to grab exceptions here
-		try {
+		try {		
 			switch($requestData["action"]) {
 				case "checkout":
 					return $this->handleCheckout($requestData);
@@ -72,9 +72,14 @@ class DIM_Server extends DIM_Base {
 	private function handleCheckout($requestData) {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
 			if($this->state->isCheckedIn()) {
-				$this->state->checkOut();
-				$this->logger->addLogItem("Checked Out By {$requestData["email"]}", "state");
-				return "1";
+				if($requestData["version"] == $this->versioning->getLatestVersion()) {
+					$this->state->checkOut();
+					$this->logger->addLogItem("Checked Out By {$requestData["email"]}", "state");
+					return "1";				
+				}
+				else {
+					return "0:old-version";
+				}
 			}
 			else {
 				return "0:wrong-state";
@@ -97,9 +102,16 @@ class DIM_Server extends DIM_Base {
 	private function handleCheckin($requestData) {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
 			if($this->state->isCheckedOut()) {
-				$this->state->checkIn();
-				$this->logger->addLogItem("Checked In By {$requestData["email"]}", "state");
-				return "1";
+				if($requestData["old-version"] == $this->versioning->getLatestVersion()) {
+					$this->state->checkIn();
+					$this->logger->addLogItem("Checked In By {$requestData["email"]}", "state");
+					$newVersion = $this->versioning->addNewVersion();
+					$this->logger->addLogItem("Database Now At Version {$newVersion}", "version");
+					return "1:{$newVersion}";					
+				}
+				else {
+					return "0:old-version-incorrect";
+				}
 			}
 			else {
 				return "0:wrong-state";

@@ -10,34 +10,44 @@ require_once(dirname(__FILE__) . "/base.class.php");
 */
 class DIM_Versioning extends DIM_Base {
 
+	var $database;
+
 	/*
-		::addNewVersion()
+		->construct()
+	*/
+	public function __construct() {
+		$this->database = new Database_IO($this->getDatabaseSettings());
+	}
+	
+
+	/*
+		->addNewVersion()
 		Puts another version into the database.
 		@returns
 			int - the new version number.
 	*/
-	public static function addNewVersion() {
-		$currentVersion = self::getLatestVersion();
+	public function addNewVersion() {
+		$currentVersion = $this->getLatestVersion();
 		$newVersion = $currentVersion + 1;
 		
 		$sql = "INSERT INTO tbl_dim_versions (version) VALUES ({$newVersion})";
-		Database_IO::query($sql, RETURN_NONE, true);
+		$this->database->query($sql, RETURN_NONE, true);
 		
 		return $newVersion;
 	}
 	
 	
 	/*
-		::getLatestVersion()
+		->getLatestVersion()
 		Gets the latest db version from the database
 		@returns
 			int - the latest database version.
 	*/
-	public static function getLatestVersion() {
+	public function getLatestVersion() {
 		
 		$sql = "SELECT version FROM tbl_dim_versions ORDER BY version DESC LIMIT 1";
-		$latestVersion = Database_IO::query($sql, RETURN_VALUE, true);
-	
+		$latestVersion = $this->database->query($sql, RETURN_VALUE, true);
+
 		if(!$latestVersion) {
 			$latestVersion = "0";
 		}
