@@ -69,7 +69,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 						);
 					// generate the authentication key
 					$passedAuthKey = $_POST["settings"]["server"]["users"]["auth-key"][$i];
-					$userArray["auth-key"] = ($passedAuthKey == "save-to-generate" ? DIM_Server::generateAuthenticationKey($userArray) : $passedAuthKey); 
+					$userArray["auth-key"] = ($passedAuthKey == "" ? DIM_Server::generateAuthenticationKey($userArray) : $passedAuthKey); 
 					$transformedArray[] = $userArray;					
 				}			
 				$_POST["settings"]["server"]["users"] = $transformedArray;
@@ -141,7 +141,15 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$serverFieldset->setAttribute("class", "settings pickable");
 		$serverFieldset->setAttribute("id", "server");
 		
-		$this->Form->appendChild(new XMLElement('script', 'jQuery(document).ready(function(){jQuery("#users-duplicator").symphonyDuplicator({orderable: true, collapsible: true});});'));		
+		$this->Form->appendChild(new XMLElement('script', 
+			'jQuery(document).ready(function(){
+					jQuery("#users-duplicator").symphonyDuplicator({
+						orderable: true, 
+						collapsible: true,
+						save_state: true
+					});
+				});
+			'));		
 		
 		$serverUserFrame = new XMLElement('div', null, array('class' => 'frame'));
 		$ol = new XMLElement('ol');
@@ -224,8 +232,8 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$serverUserCreatedByLabel = Widget::Label("Created By");
 		$serverUserCreatedByLabel->appendChild(Widget::Input("settings[server][users][created-by][]", $data['created-by']));
 		$wrapper->appendChild($serverUserCreatedByLabel);		
-		$serverUserAuthKeyLabel = Widget::Label("Authentication Key");
-		$serverUserAuthKeyLabel->appendChild(Widget::Input("settings[server][users][auth-key][]", ($template ? "save-to-generate" : $data['auth-key']), "text"));
+		$serverUserAuthKeyLabel = Widget::Label("Authentication Key (leave blank to auto-generate)");
+		$serverUserAuthKeyLabel->appendChild(Widget::Input("settings[server][users][auth-key][]", ($template ? "" : $data['auth-key']), "text"));
 		$wrapper->appendChild($serverUserAuthKeyLabel);	
 
 		return $wrapper;
