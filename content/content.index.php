@@ -18,7 +18,6 @@ require_once(CORE . '/class.administration.php');
 
 require_once(EXTENSIONS . '/database_integration_manager/lib/server.class.php');
 require_once(EXTENSIONS . '/database_integration_manager/lib/base.class.php');
-require_once(EXTENSIONS . '/database_integration_manager/lib/configuration.class.php');
 
 class contentExtensionDatabase_integration_managerIndex extends AdministrationPage	
 {	

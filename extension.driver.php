@@ -141,7 +141,8 @@
 				true/false based on test result
 		*/
 		public static function testSettings($settings) {
-			if($this->config->getDatabaseSettings() != null) {
+			$config = new DIM_Base();
+			if($config->getDatabaseSettings() != null) {
 				switch($settings["mode"]["mode"]) {
 					case "client":
 						return DIM_Client::testClientSettings($settings["client"]);

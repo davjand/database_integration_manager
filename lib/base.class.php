@@ -27,7 +27,7 @@ class DIM_Base {
 		Returns the fully qualified path of the extension configuration file
 	*/
 	public function getExtensionConfigPath() {
-		return (dirname(__FILE__) . "/../" . self::$_CONFIG_FILE);
+		return (dirname(__FILE__) . "/../" . $this->_CONFIG_FILE);
 	}	
 	
 	/*
@@ -64,8 +64,8 @@ class DIM_Base {
 			'server', 'client' or 'disabled'
 	*/
 	public function getExtensionMode() {
-		if(self::isExtensionConfigured()) {
-			$cfg = self::getConfiguration();
+		if($this->isExtensionConfigured()) {
+			$cfg = $this->getConfiguration();
 			return $cfg["mode"]["mode"];				
 		}
 		else{
@@ -84,7 +84,7 @@ class DIM_Base {
 	public function saveConfiguration($configuration) {
 		
 		// just save stuff for now using var_export - in the future we could maybe do some merging?
-		file_put_contents(self::getExtensionConfigPath(), "<?php \$savedSettings = " . var_export($_POST["settings"], true) . "; ?>");	
+		file_put_contents($this->getExtensionConfigPath(), "<?php \$savedSettings = " . var_export($_POST["settings"], true) . "; ?>");	
 	
 	}
 	

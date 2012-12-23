@@ -51,12 +51,13 @@ class DIM_Server extends DIM_Base {
 					return "1";
 					break;
 				default:
-					return "0";
+					return "0:error";
 					break;
 			}
 		}
 		catch(Exception $e) {
 			$this->logger->logException($e);
+			return "-1:error";
 		}
 	}
 	
@@ -70,12 +71,16 @@ class DIM_Server extends DIM_Base {
 	*/
 	private function handleCheckout($requestData) {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
-		
-		
-		
+			if($this->state->isCheckedIn()) {
+				$this->state->checkOut();
+				return "1";
+			}
+			else {
+				return "0:wrong-state";
+			}
 		}
 		else {
-			return "0";
+			return "0:unauthed";
 		}
 	}
 	
@@ -89,12 +94,16 @@ class DIM_Server extends DIM_Base {
 	*/
 	private function handleCheckin($requestData) {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
-		
-		
-		
+			if($this->state->isCheckedOut()) {
+				$this->state->checkIn();
+				return "1";
+			}
+			else {
+				return "0:wrong-state";
+			}		
 		}
 		else {
-			return "0";
+			return "0:unauthed";
 		}
 	}
 
