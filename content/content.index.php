@@ -28,7 +28,6 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
     public function build()
     {
         parent::build();
-		$this->setPageType('form');
         $this->setTitle('Symphony - DIM Configuration');
 		
     }
