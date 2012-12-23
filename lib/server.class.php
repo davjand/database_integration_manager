@@ -3,6 +3,7 @@
 require_once(dirname(__FILE__) . "/logger.class.php");
 require_once(dirname(__FILE__) . "/authenticator.class.php");
 require_once(dirname(__FILE__) . "/versioning.class.php");
+require_once(dirname(__FILE__) . "/statemanager.class.php");
 require_once(dirname(__FILE__) . "/base.class.php");
 
 /*
@@ -14,13 +15,17 @@ class DIM_Server extends DIM_Base {
 
 	var $authenticator = null;
 	var $versioning = null;
-
+	var $state = null;
+	var $logger = null;
+	
 	/*
 		->__construct()
 	*/
 	public function __construct() {
 		$this->authenticator = new DIM_Authenticator();
 		$this->versioning = new DIM_Versioning();
+		$this->state = new DIM_StateManager();
+		$this->logger = new DIM_Logger();
 	}
 	
 	/*
@@ -36,9 +41,12 @@ class DIM_Server extends DIM_Base {
 		// this is a system entry point so we need to grab exceptions here
 		try {
 			switch($requestData["action"]) {
-				
-			
-			
+				case "checkout":
+					return $this->handleCheckout($requestData);
+					break;
+				case "checkin":
+					return $this->handleCheckIn($requestData);
+					break;
 				case "test":
 					return "1";
 					break;
@@ -48,7 +56,7 @@ class DIM_Server extends DIM_Base {
 			}
 		}
 		catch(Exception $e) {
-			DIM_Logger::logException($e);
+			$this->logger->logException($e);
 		}
 	}
 	
@@ -57,9 +65,18 @@ class DIM_Server extends DIM_Base {
 		Handles a checkout request
 		@params
 			$requestData - the data sent by the client
+		@returns
+			mixed - the result of the request
 	*/
 	private function handleCheckout($requestData) {
-	
+		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
+		
+		
+		
+		}
+		else {
+			return "0";
+		}
 	}
 	
 	/*
@@ -67,9 +84,18 @@ class DIM_Server extends DIM_Base {
 		Handles a checkout request
 		@params
 			$requestData - the data sent by the client
+		@returns
+			mixed - the result of the request
 	*/
 	private function handleCheckin($requestData) {
-
+		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
+		
+		
+		
+		}
+		else {
+			return "0";
+		}
 	}
 
 	/*

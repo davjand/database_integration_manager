@@ -60,7 +60,7 @@ class DIM_Logger {
 			the path of the log file
 	*/
 	public function getLogPath() {
-		return (dirname(__FILE__) . "/../log.php");
+		return (dirname(__FILE__) . "/../../../manifest/dim_log.php");
 	}
 	
 	/*
@@ -71,8 +71,13 @@ class DIM_Logger {
 			array - the log items.
 	*/
 	private function readRawLog() {
-		include($this->getLogPath());
-		return $theLog;
+		if(!file_exists($this->getLogPath())) {
+			return array();		
+		}
+		else {
+			include($this->getLogPath());
+			return $theLog;			
+		}
 	}
 	
 	/*
@@ -83,7 +88,7 @@ class DIM_Logger {
 	private function saveRawLogItem($logItem) {
 		$theLog = $this->readRawLog();
 		$theLog[] = $logItem;
-		file_put_contents($this->getLogPath(), "<?php \$theLog = " . var_export($logItem, true) . "; ?>");
+		file_put_contents($this->getLogPath(), "<?php \$theLog = " . var_export($theLog, true) . "; ?>");
 	}
 	
 }

@@ -8,9 +8,9 @@ class LoggerTest extends PHPUnit_Framework_TestCase {
 
 	public function setUp() {
 	
-		self::$mockedLogger = $this->getMock("DIM_Logger", array("saveRawLogItem"));
+		self::$mockedLogger = $this->getMock("DIM_Logger");
 		
-		self::$mockedLogger->expects($this->once())
+		self::$mockedLogger->expects($this->any())
 						->method("saveRawLogItem")
 						->will($this->returnCallback('throwFilledException'));
 	
@@ -27,26 +27,22 @@ class LoggerTest extends PHPUnit_Framework_TestCase {
 			self::$mockedLogger->addLogItem("Hello");
 		}
 		catch(Exception $e) {
-			print_r(unserialize($e->getMessage()));
+			$this->assertTrue(true);
+			return;
 		}
-	
+		$this->assertTrue(false);
 	}
 	
 	public function testLogException() {
 	
 		try {
-			self::$mockedLogger->logException(new Exception("testing123"));
+			//self::$mockedLogger->logException(new Exception("testing123"));
 		}
 		catch(Exception $e) {
-			print_r(unserialize($e->getMessage()));
+			$this->assertTrue(true);
+			return;
 		}		
-	
-	}
-	
-	public function readLog() {
-	
-	
-	
+		$this->assertTrue(false);
 	}
 
 }

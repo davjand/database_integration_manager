@@ -1,6 +1,6 @@
 <?php
 
-require_once(EXTENSIONS . "/database_integration_manager/lib/io/network.class.php");
+require_once(dirname(__FILE__) . "/io/network.class.php");
 require_once(dirname(__FILE__) . "/base.class.php");
 
 /*
