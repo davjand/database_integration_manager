@@ -1,13 +1,14 @@
 <?php
 
 require_once(EXTENSIONS . "/database_integration_manager/lib/io/network.class.php");
+require_once(dirname(__FILE__) . "/base.class.php");
 
 /*
 	DIM_Client
 	
 	Encapsulates the workings of the DIM client.
 */
-class DIM_Client {
+class DIM_Client extends DIM_Base {
 
 	/*
 		::testClientSettings($settings)

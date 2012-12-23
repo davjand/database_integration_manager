@@ -17,16 +17,27 @@ require_once(CORE . '/class.administration.php');
 
 
 require_once(EXTENSIONS . '/database_integration_manager/lib/server.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/base.class.php');
 require_once(EXTENSIONS . '/database_integration_manager/lib/configuration.class.php');
 
 class contentExtensionDatabase_integration_managerIndex extends AdministrationPage	
 {	
+
+	var $config = null;
+
+	/*
+		->__construct()
+	*/
+	public function __construct() {
+		parent::__construct();
+		$this->config = new DIM_Base();
+	}
+
 	/*	
 		->build()
 		Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/administrationpage#build
 	*/
-    public function build()
-    {
+    public function build() {
         parent::build();
         $this->setTitle('Symphony - DIM Configuration');
 		
@@ -76,7 +87,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 			}			
 			
 			if(extension_database_integration_manager::testSettings($_POST["settings"])) {				
-				DIM_Configuration::saveConfiguration($_POST["settings"]);
+				$this->config->saveConfiguration($_POST["settings"]);
 				$this->pageAlert(__('Configuration Settings updated successfully.'), Alert::SUCCESS);			
 			}
 			else {
@@ -100,10 +111,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 
 		
 		// Get the saved settings from the file - this will populate $savedSettings
-		$savedSettings = array();
-		if(DIM_Configuration::isExtensionConfigured()) {
-			include(DIM_Configuration::getExtensionConfigPath());
-		}
+		$savedSettings = $this->config->getConfiguration();
 		
 		// The mode is the 'picker' - nice UI and also necessary for validation functioning
 		

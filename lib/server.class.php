@@ -2,21 +2,25 @@
 
 require_once(dirname(__FILE__) . "/logger.class.php");
 require_once(dirname(__FILE__) . "/authenticator.class.php");
+require_once(dirname(__FILE__) . "/versioning.class.php");
+require_once(dirname(__FILE__) . "/base.class.php");
 
 /*
 	DIM_Server
 	
 	Encapsulates the workings of the DIM server.
 */
-class DIM_Server {
+class DIM_Server extends DIM_Base {
 
 	var $authenticator = null;
+	var $versioning = null;
 
 	/*
 		->__construct()
 	*/
 	public function __construct() {
 		$this->authenticator = new DIM_Authenticator();
+		$this->versioning = new DIM_Versioning();
 	}
 	
 	/*

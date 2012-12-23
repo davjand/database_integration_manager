@@ -59,7 +59,7 @@ class Network_IO {
 	*/
 	public static function isActiveUrl($host)
 	{
-		$url = self::getUrlFromHost($host);
+		$url = static::getUrlFromHost($host);
 		
 		if (!($url = @parse_url($url)))
 		{

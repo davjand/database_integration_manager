@@ -1,13 +1,14 @@
 <?php
 
 require_once(dirname(__FILE__) . "/io/database.class.php");
+require_once(dirname(__FILE__) . "/base.class.php");
 
 /*
 	DIM_Versioning
 	
 	Encapsulates all the versioning database requests
 */
-class DIM_Versioning {
+class DIM_Versioning extends DIM_Base {
 
 	/*
 		::addNewVersion()

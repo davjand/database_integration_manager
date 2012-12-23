@@ -1,9 +1,20 @@
 <?php
 	require_once(EXTENSIONS . "/database_integration_manager/lib/client.class.php");
-	require_once(EXTENSIONS . "/database_integration_manager/lib/configuration.class.php");
+	require_once(EXTENSIONS . "/database_integration_manager/lib/base.class.php");
 	
 	class Extension_database_integration_manager extends Extension {
 
+		var $config = null;
+
+		/*
+			->__construct()
+		*/
+		public function __construct() {
+			parent::__construct();
+			$this->config = new DIM_Base();
+		}		
+	
+	
 		/*
 			->install()
 			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#install
@@ -87,7 +98,7 @@
 			Adds an alert to the administration pages if DIM is installed but not configured.
 		*/
 		public function appendAlerts($context) {
-			if(!DIM_Configuration::isExtensionConfigured()) {
+			if(!$this->config->isExtensionConfigured()) {
 				Administration::instance()->Page->pageAlert(
 					__('Database Integration Manager is installed but not configured. <a href=\'' . SYMPHONY_URL . '/extension/database_integration_manager\'>Configure it now</a>.'),
 					Alert::ERROR
@@ -100,8 +111,8 @@
 			Modify the Symphony admin navigation according to the current mode.
 		*/
 		public function modifyNavigation(&$navigation) {
-			if(DIM_Configuration::isExtensionConfigured()) {
-				switch(DIM_Configuration::getExtensionMode()) {
+			if($this->config->isExtensionConfigured()) {
+				switch($this->config->getExtensionMode()) {
 					case "client":
 						
 						break;
@@ -130,7 +141,7 @@
 				true/false based on test result
 		*/
 		public static function testSettings($settings) {
-			if(DIM_Configuration::getDatabaseSettings() != null) {
+			if($this->config->getDatabaseSettings() != null) {
 				switch($settings["mode"]["mode"]) {
 					case "client":
 						return DIM_Client::testClientSettings($settings["client"]);
