@@ -2,6 +2,7 @@
 
 require_once(dirname(__FILE__) . "/io/database.class.php");
 require_once(dirname(__FILE__) . "/base.class.php");
+require_once(dirname(__FILE__) . "/querymanager.class.php");
 
 /*
 	DIM_Versioning
@@ -19,16 +20,40 @@ class DIM_Versioning extends DIM_Base {
 		$this->database = new Database_IO($this->getDatabaseSettings());
 	}
 	
+	/*
+		->databaseNeedsUpdating()
+		Determine if the database needs updating.
+		@returns
+			true/false - based on the query
+	*/
+	public function databaseNeedsUpdating() {
+		
+		$latestVersion = $this->getLatestVersion();
+		
+		$queryManager = new DIM_QueryManager();
+		if($queryManager->checkForVersionFile($latestVersion + 1)) {
+			return true;
+		}		
+		else {
+			return false;
+		}	
+	}
+	
+		
 
 	/*
 		->addNewVersion()
 		Puts another version into the database.
+		@params
+			$newVersion - the version to add (optional defaults to -1 which will cause a new number to be generated)
 		@returns
 			int - the new version number.
 	*/
-	public function addNewVersion() {
+	public function addNewVersion($newVersion = -1) {
 		$currentVersion = $this->getLatestVersion();
-		$newVersion = $currentVersion + 1;
+		if($newVersion == -1) {
+			$newVersion = $currentVersion + 1;
+		}
 		
 		$pendingState = "";
 		if($this->getExtensionMode() == "client") {

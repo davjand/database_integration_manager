@@ -3,6 +3,7 @@
 	require_once(EXTENSIONS . "/database_integration_manager/lib/base.class.php");
 	require_once(EXTENSIONS . "/database_integration_manager/lib/statemanager.class.php");
 	require_once(EXTENSIONS . "/database_integration_manager/lib/querymanager.class.php");
+	require_once(EXTENSIONS . "/database_integration_manager/lib/versioning.class.php");
 	
 	class Extension_database_integration_manager extends Extension {
 
@@ -130,6 +131,15 @@
 					__('Database Integration Manager is installed but not configured. <a href=\'' . SYMPHONY_URL . '/extension/database_integration_manager\'>Configure it now</a>.'),
 					Alert::ERROR
 				);				
+			}
+			else {
+				$versioning = new DIM_Versioning();
+				if($versioning->databaseNeedsUpdating()) {
+					Administration::instance()->Page->pageAlert(
+						__("Your Database Is Out Of Date! <a href='#'>Update It</a>."),
+						Alert::ERROR
+					);
+				}
 			}
 		}
 		

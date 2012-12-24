@@ -2,6 +2,7 @@
 
 require_once(dirname(__FILE__) . "/base.class.php");
 require_once(dirname(__FILE__) . "/statemanager.class.php");
+require_once(dirname(__FILE__) . "/versioning.class.php");
 
 /*
 	DIM_QueryManager
@@ -55,12 +56,40 @@ class DIM_QueryManager extends DIM_Base {
 	}
 	
 	/*
-		->getCacheFileName()
+		->getQueryCacheFileName()
+		@returns
+			string - the file name of the query cache
+	*/
+	private function getQueryCacheFileName() {
+		return (dirname(__FILE__) . "/../../../manifest/dim_q_cache");
+	}
+	
+	/*
+		->getUpdateCacheFileName()
+		@returns
+			string - the file name of the update cache
+	*/
+	public function getUpdateCacehFileName() {
+		return (dirname(__FILE__) . "/../../../manifest/dim_u_cache");	
+	}
+	
+	/*
+		->getVersionFileName()
+		@params
+			$version - the version filename to get.
 		@returns
 			string - the file name
+	*/		
+	private function getVersionFileName($version) {
+		return dirname(__FILE__) . "/../../../data/version.{$version}.php";		
+	}
+	
+	/*
+		->checkForVersionFile($versionNumber)
 	*/
-	private function getCacheFileName() {
-		return (dirname(__FILE__) . "/../../../manifest/dim_q_cache");
+	public function checkForVersionFile($version) {
+		$versionFilename = $this->getVersionFileName($version);
+		return file_exists($versionFilename);
 	}
 	
 	/*
@@ -69,12 +98,14 @@ class DIM_QueryManager extends DIM_Base {
 		@params
 			$version - the new version that the file will represent
 			$commitMessage - the commit message sent by the user
+		@returns
+			string - the version file name
 	*/
 	public function makeVersionFile($version, $commitMessage) {
 	
-		$versionFilename = dirname(__FILE__) . "/../../../data/version.{$version}.php";
+		$versionFilename = $this->getVersionFileName($version);
 	
-		$cacheContents = file_get_contents($this->getCacheFileName());
+		$cacheContents = file_get_contents($this->getQueryCacheFileName());
 		
 		$versionData = array(
 			"version" => $version,
@@ -85,6 +116,8 @@ class DIM_QueryManager extends DIM_Base {
 		file_put_contents($versionFilename, "<?php \$versionData = " . var_export($versionData, true) . "; ?>");	
 	
 		$this->clearCache();
+		
+		return $versionFilename;
 		
 	}
 	
@@ -102,10 +135,74 @@ class DIM_QueryManager extends DIM_Base {
 		Clears the current cache
 	*/
 	private function clearCache() {
-		file_put_contents($this->getCacheFileName(), "");	
+		file_put_contents($this->getQueryCacheFileName(), "");	
 	}
 	
-
+	/*
+		->beginUpdate()
+		Start a new update.
+	*/
+	public function beginUpdate() {
+	
+		// do we need to resume an update?
+		if(file_exists($this->getUpdateCacheFilename())) {
+			$this->resumeUpdate();
+		}
+		else {
+		
+			$versioning = new DIM_Versioning();
+			$currentVersion = $versioning->getLatestVersion();
+			
+			// start by building an update cache..
+			$updateCache = array();
+			
+			$v = $currentVersion;
+			for($v = $currentVersion; $this->checkForVersionFile($v); $v++) {
+				include($this->getVersionFileName($v));
+				$updateCache[$v] = $versionData;
+			}
+			
+			$this->saveUpdateCache($updateCache);
+		
+			// now we have a cache to run our update on...
+			$this->resumeUpdate();			
+		}
+			
+	}
+	
+	/*
+		->saveUpdateCache($updateCache)
+		Saves the update cache into a the file.
+		@params
+			$updateCache - the cache array.
+	*/
+	private function saveUpdateCache($updateCache) {
+		file_put_contents($this->getUpdateCacheFilename(), "<?php \$updateCache = " . var_export($updateCache, true) . "; ?>");	
+	}
+	
+	/*
+		->resumeUpdate()
+		Resume an already-running update - can run on any cache file (old or newly generated)
+	*/
+	public function resumeUpdate() {
+		
+		// creates $updateCache
+		include($this->getUpdateCacheFilename());
+		
+		// sort it backwards so we can POP (which is a nicer sound than SHIFT)
+		krsort($updateCache);
+		
+		while($update = array_pop($updateCache)) {
+		
+			
+			
+			
+			// save the update cache now in case we die on the next iteration
+			$this->saveUpdateCache($updateCache);
+		}
+	
+	}
+	
 }
 
 

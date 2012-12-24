@@ -94,7 +94,12 @@ class DIM_Client extends DIM_Base {
 			$this->logger->addLogItem("Database Checked In", "state");
 			
 			$queryManager = new DIM_QueryManager();
-			$queryManager->makeVersionFile($responseParts[1], "A Test Commit");
+			$versionFileName = $queryManager->makeVersionFile($responseParts[1], "A Test Commit");
+			$this->logger->addLogItem("Version file {$versionFileName} created", "version");
+			
+			$newVersion = $versioning->addNewVersion();
+			$this->logger->addLogItem("Database now at version {$newVersion}", "version");
+						
 			
 			return true;
 		}
