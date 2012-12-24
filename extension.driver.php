@@ -47,7 +47,11 @@
 		*/
 		public function update($previousVersion) {
 		
+<<<<<<< HEAD
 			if($previousVersion == "0.0.1") {
+=======
+			if($previousVersion = "0.0.1") {
+>>>>>>> 930c43ae0efd84a7b5d28da0af74ab7f3ae64df7
 				
 				Symphony::Database()->query('ALTER TABLE tbl_dim_versions ADD `state` varchar(100) NOT NULL;');
 			
