@@ -2,6 +2,7 @@
 	require_once(EXTENSIONS . "/database_integration_manager/lib/client.class.php");
 	require_once(EXTENSIONS . "/database_integration_manager/lib/base.class.php");
 	require_once(EXTENSIONS . "/database_integration_manager/lib/statemanager.class.php");
+	require_once(EXTENSIONS . "/database_integration_manager/lib/querymanager.class.php");
 	
 	class Extension_database_integration_manager extends Extension {
 
@@ -28,6 +29,7 @@
 											  `id` int(11) NOT NULL AUTO_INCREMENT,
 											  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 											  `version` int(11) NOT NULL,
+											  `state` varchar(100) NOT NULL,
 											  PRIMARY KEY (`id`)
 											  ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;');
 
@@ -45,8 +47,9 @@
 		*/
 		public function update($previousVersion) {
 		
-			if($previousVersion = "0.0.1") {
-			
+			if($previousVersion == "0.0.1") {
+				
+				Symphony::Database()->query('ALTER TABLE tbl_dim_versions ADD `state` varchar(100) NOT NULL;');
 			
 			}
 		
@@ -58,6 +61,9 @@
 		*/
 		public function uninstall() {
 		
+			// if they've uninstalled this, then they're outside versioning so we need to delete this
+			Symphony::Database()->query("DROP TABLE tbl_dim_versions;");
+			
 		}		
 	
 		/*
@@ -90,8 +96,28 @@
 					'page'		=> '/backend/',
 					'delegate'	=> 'NavigationPreRender',
 					'callback'	=> 'modifyNavigation'
-				)
+				),
+				array(
+					'page' => '/frontend/',
+					'delegate' => 'PostQueryExecution',
+					'callback' => 'processQuery'
+				),
+				array(
+					'page' => '/backend/',
+					'delegate' => 'PostQueryExecution',
+					'callback' => 'processQuery'
+				)								
 			);
+		}
+		
+		
+		/*
+			->processQuery($context)
+			Marshalls the query into the querymanager for processing
+		*/
+		public function processQuery($context) {
+			$queryManager = new DIM_QueryManager();
+			$queryManager->logNewQuery(trim($context["query"]));
 		}
 		
 		/*
