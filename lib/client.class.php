@@ -3,6 +3,7 @@
 require_once(dirname(__FILE__) . "/io/network.class.php");
 require_once(dirname(__FILE__) . "/versioning.class.php");
 require_once(dirname(__FILE__) . "/base.class.php");
+require_once(dirname(__FILE__) . "/querymanager.class.php");
 
 /*
 	DIM_Client
@@ -50,9 +51,8 @@ class DIM_Client extends DIM_Base {
 			// successful checkout
 			$this->state->checkOut();
 			$this->logger->addLogItem("Database Checked Out", "state");
-
-			$newVersion = $versioning->addNewVersion();
-			$this->logger->addLogItem("Added database version {$newVersion}");
+			
+			// don't add a new version yet - will be done at checkin
 			
 			return true;
 		}
@@ -80,8 +80,8 @@ class DIM_Client extends DIM_Base {
 				"action" => "checkin",
 				"email" => $config["client"]["user-email"],
 				"auth-key" => $config["client"]["auth-key"],
-				"version" => $versioning->getLatestVersion(),
-				"old-version" => ($versioning->getLatestVersion() - 1)
+				"version" => ($versioning->getLatestVersion() + 1),
+				"old-version" => $versioning->getLatestVersion()
 			);
 	
 		$rawResponse = Network_IO::makeServerRequest($config["client"]["server-host"], $requestData);
@@ -92,6 +92,9 @@ class DIM_Client extends DIM_Base {
 			// successful checkin!
 			$this->state->checkIn();
 			$this->logger->addLogItem("Database Checked In", "state");
+			
+			$queryManager = new DIM_QueryManager();
+			$queryManager->makeVersionFile($responseParts[1], "A Test Commit");
 			
 			return true;
 		}

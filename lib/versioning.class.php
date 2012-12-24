@@ -30,7 +30,15 @@ class DIM_Versioning extends DIM_Base {
 		$currentVersion = $this->getLatestVersion();
 		$newVersion = $currentVersion + 1;
 		
-		$sql = "INSERT INTO tbl_dim_versions (version) VALUES ({$newVersion})";
+		$pendingState = "";
+		if($this->getExtensionMode() == "client") {
+			$pendingState = "completed";
+		}
+		else {
+			$pendingState = "pending";
+		}
+		
+		$sql = "INSERT INTO tbl_dim_versions (version, state) VALUES ({$newVersion}, '{$pendingState}')";
 		$this->database->query($sql, RETURN_NONE, true);
 		
 		return $newVersion;
