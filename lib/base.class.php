@@ -1,48 +1,57 @@
 <?php
 
-/*
-	DIM_Configuration
-	
-	Deals with configuration - try to keep everything static!!
-*/
-class DIM_Configuration {
+if(!defined("MANIFEST")) {
+	define("MANIFEST", dirname(__FILE__) . "/../../../manifest");
+}
 
-	static $_CONFIG_FILE = "/config.php";
+/*
+	DIM_Base
+	
+	Deals with configuration mainly, but should be inherited by all DIM objects. It cannot
+	be declared abstract because Symphony structures will need to instantiate it to access
+	the config functions.
+*/
+class DIM_Base {
+	
+	/*
+		Needs to be stored in the manifest folder.
+	*/
+	var $_CONFIG_FILE = "/../../manifest/dim_config.php";
 
 	/*
-		::isExtensionConfigured()
+		->isExtensionConfigured()
 		Returns true if a current configuration exists
 	*/
-	public static function isExtensionConfigured() {
+	public function isExtensionConfigured() {
 		return file_exists(self::getExtensionConfigPath());	
 	}
 	
 	/*
-		::getExtensionConfigPath()
+		->getExtensionConfigPath()
 		Returns the fully qualified path of the extension configuration file
 	*/
-	public static function getExtensionConfigPath() {
-		return (dirname(__FILE__) . "/../" . self::$_CONFIG_FILE);
+	public function getExtensionConfigPath() {
+		return (dirname(__FILE__) . "/../" . $this->_CONFIG_FILE);
 	}	
 	
 	/*
-		::getDatabaseSettings() 
+		->getDatabaseSettings() 
 		Gets the Symphony database settings
 		@returns
 			array("host" => , "port" => , "user" => , "password" => , "db" => , "tbl_prefix" => )
 	*/
-	public static function getDatabaseSettings() {
+	public function getDatabaseSettings() {
 		include(MANIFEST . "/config.php");
 		return $settings["database"];
 	}
 	
 	/*
-		::getConfiguration()
+		->getConfiguration()
 		Gets the extension configuration.
 		@returns
 			array/null - the configuration, if it exists.
 	*/
-	public static function getConfiguration() {
+	public function getConfiguration() {
 		if(self::isExtensionConfigured()) {
 			include(self::getExtensionConfigPath());
 			return $savedSettings;
@@ -53,14 +62,14 @@ class DIM_Configuration {
 	}
 	
 	/*
-		::getExtensionMode()
+		->getExtensionMode()
 		Get the currently set extension mode.
 		@returns
 			'server', 'client' or 'disabled'
 	*/
-	public static function getExtensionMode() {
-		if(self::isExtensionConfigured()) {
-			$cfg = self::getConfiguration();
+	public function getExtensionMode() {
+		if($this->isExtensionConfigured()) {
+			$cfg = $this->getConfiguration();
 			return $cfg["mode"]["mode"];				
 		}
 		else{
@@ -69,17 +78,17 @@ class DIM_Configuration {
 	}
 	
 	/*
-		::saveConfiguration($configuration)
+		->saveConfiguration($configuration)
 		Saves the passed configuration into the configuration file.
 		@params
 			$configuration - the array of configuration settings
 		@returns
 			nothing
 	*/
-	public static function saveConfiguration($configuration) {
+	public function saveConfiguration($configuration) {
 		
 		// just save stuff for now using var_export - in the future we could maybe do some merging?
-		file_put_contents(self::getExtensionConfigPath(), "<?php \$savedSettings = " . var_export($_POST["settings"], true) . "; ?>");	
+		file_put_contents($this->getExtensionConfigPath(), "<?php \$savedSettings = " . var_export($_POST["settings"], true) . "; ?>");	
 	
 	}
 	

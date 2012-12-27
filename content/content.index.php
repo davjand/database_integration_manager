@@ -17,18 +17,30 @@ require_once(CORE . '/class.administration.php');
 
 
 require_once(EXTENSIONS . '/database_integration_manager/lib/server.class.php');
-require_once(EXTENSIONS . '/database_integration_manager/lib/configuration.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/client.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/base.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/statemanager.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/logger.class.php');
 
 class contentExtensionDatabase_integration_managerIndex extends AdministrationPage	
 {	
+
+	var $config = null;
+
+	/*
+		->__construct()
+	*/
+	public function __construct() {
+		parent::__construct();
+		$this->config = new DIM_Base();
+	}
+
 	/*	
 		->build()
 		Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/administrationpage#build
 	*/
-    public function build()
-    {
+    public function build() {
         parent::build();
-		$this->setPageType('form');
         $this->setTitle('Symphony - DIM Configuration');
 		
     }
@@ -70,14 +82,17 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 						);
 					// generate the authentication key
 					$passedAuthKey = $_POST["settings"]["server"]["users"]["auth-key"][$i];
-					$userArray["auth-key"] = ($passedAuthKey == "save-to-generate" ? DIM_Server::generateAuthenticationKey($userArray) : $passedAuthKey); 
+					$userArray["auth-key"] = ($passedAuthKey == "" ? DIM_Server::generateAuthenticationKey($userArray) : $passedAuthKey); 
 					$transformedArray[] = $userArray;					
 				}			
 				$_POST["settings"]["server"]["users"] = $transformedArray;
 			}			
 			
-			if(extension_database_integration_manager::testSettings($_POST["settings"])) {				
-				DIM_Configuration::saveConfiguration($_POST["settings"]);
+			if(extension_database_integration_manager::testSettings($_POST["settings"])) {
+				$logger = new DIM_Logger();
+				$logger->addLogItem("Configuration Updated", "system");
+				
+				$this->config->saveConfiguration($_POST["settings"]);
 				$this->pageAlert(__('Configuration Settings updated successfully.'), Alert::SUCCESS);			
 			}
 			else {
@@ -99,12 +114,32 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$this->setPageType('form');
 		$this->appendSubheading(__('DIM Configuration'));		
 
+		// Checkout/in?
+		if(isset($_GET["try"])) {
+			$client = new DIM_Client();
+			$errorStr = "";
+			switch($_GET["try"]) {
+				case "checkout":
+					if($client->requestCheckout(&$errorStr)) {
+						$this->pageAlert(__('Database checked out!'), Alert::SUCCESS);			
+					}
+					else {
+						$this->pageAlert(__("Checkout Failed - '{$errorStr}'"), Alert::ERROR);					
+					}
+					break;
+				case "checkin":
+					if($client->requestCheckin(&$errorStr)) {
+						$this->pageAlert(__('Database checked in!'), Alert::SUCCESS);			
+					}
+					else {
+						$this->pageAlert(__("Checkin Failed - '{$errorStr}'"), Alert::ERROR);					
+					}
+					break;
+			}
+		}		
 		
 		// Get the saved settings from the file - this will populate $savedSettings
-		$savedSettings = array();
-		if(DIM_Configuration::isExtensionConfigured()) {
-			include(DIM_Configuration::getExtensionConfigPath());
-		}
+		$savedSettings = $this->config->getConfiguration();
 		
 		// The mode is the 'picker' - nice UI and also necessary for validation functioning
 		
@@ -132,17 +167,52 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$clientFieldset = new XMLElement('fieldset');
 		$clientFieldset->setAttribute("class", "settings pickable");
 		$clientFieldset->setAttribute("id", "client");
-		$liveServerUrlLabel = Widget::Label("Live Server URL");
-		$liveServerUrlLabel->appendChild(Widget::Input("settings[client][server-url]", $savedSettings["client"]["server-url"]));
+		$liveServerUrlLabel = Widget::Label("Live Server Host or IP (can append a subdirectory if required)");
+		$liveServerUrlLabel->appendChild(Widget::Input("settings[client][server-host]", $savedSettings["client"]["server-host"]));
 		$clientFieldset->appendChild($liveServerUrlLabel);
+		
+		$emailAddressLabel = Widget::Label("Email Address");
+		$emailAddressLabel->appendChild(Widget::Input("settings[client][user-email]", $savedSettings["client"]["user-email"]));
+		$clientFieldset->appendChild($emailAddressLabel);
+		
+		$authKeyLabel = Widget::Label("Authentication Key");
+		$authKeyLabel->appendChild(Widget::Input("settings[client][auth-key]", $savedSettings["client"]["auth-key"]));
+		$clientFieldset->appendChild($authKeyLabel);
+
+		$stateManager = new DIM_StateManager("client");
+		$stateText = "";
+		$linkText = "";
+		if($stateManager->isCheckedOut()) {
+			$stateText = "Checked Out";
+			$linkText = "<a href='?try=checkin'>Check In</a>";		
+		}
+		else {
+			$stateText = "Checked In";
+			$linkText = "<a href='?try=checkout'>Check Out</a>";			
+		}
+		$clientFieldset->appendChild(new XMLElement('div', "{$linkText} &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));			
+		
 		$this->Form->appendChild($clientFieldset);
 
-		// Server Settings Block
+		// Server Settings Block	
 		$serverFieldset = new XMLElement('fieldset');
 		$serverFieldset->setAttribute("class", "settings pickable");
 		$serverFieldset->setAttribute("id", "server");
+
+		$stateManager = new DIM_StateManager("server");
+		$stateText = ($stateManager->isCheckedOut() ? "Checked Out" : "Checked In");
 		
-		$this->Form->appendChild(new XMLElement('script', 'jQuery(document).ready(function(){jQuery("#users-duplicator").symphonyDuplicator({orderable: true, collapsible: true});});'));		
+		$serverFieldset->appendChild(new XMLElement('div', "<a href='log'>View Log</a> &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));	
+		
+		$this->Form->appendChild(new XMLElement('script', 
+			'jQuery(document).ready(function(){
+					jQuery("#users-duplicator").symphonyDuplicator({
+						orderable: true, 
+						collapsible: true,
+						save_state: true
+					});
+				});
+			'));		
 		
 		$serverUserFrame = new XMLElement('div', null, array('class' => 'frame'));
 		$ol = new XMLElement('ol');
@@ -155,27 +225,6 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 				$ol->appendChild($this->__getUserInputBlock($u));
 			}
 		}
-		/*
-		$templateWrapper = new XMLElement('li', NULL, array('class' => 'template field-user'));
-		$templateWrapper->setAttribute('data-type', 'user');
-		$templateHeader = new XMLElement('header', "New User", array("class" => "main"));
-		$templateWrapper->appendChild($templateHeader);
-		$serverUserFirstnameLabel = Widget::Label("User First Name");
-		$serverUserFirstnameLabel->appendChild(Widget::Input("settings[server][users][][firstname]", ""));
-		$templateWrapper->appendChild($serverUserFirstnameLabel);		
-		$serverUserLastnameLabel = Widget::Label("User Last Name");
-		$serverUserLastnameLabel->appendChild(Widget::Input("settings[server][users][][lastname]", ""));
-		$templateWrapper->appendChild($serverUserLastnameLabel);		
-		$serverUserEmailLabel = Widget::Label("User Email Name");
-		$serverUserEmailLabel->appendChild(Widget::Input("settings[server][users][][email]", ""));
-		$templateWrapper->appendChild($serverUserEmailLabel);
-		$serverUserCreatedByLabel = Widget::Label("Created By");
-		$serverUserCreatedByLabel->appendChild(Widget::Input("settings[server][users][][created-by]", ""));
-		$templateWrapper->appendChild($serverUserCreatedByLabel);		
-		$serverUserAuthKeyLabel = Widget::Label("Authentication Key");
-		$serverUserAuthKeyLabel->appendChild(Widget::Input("settings[server][users][][auth-key]", "", "text", array("disabled" => "disabled")));
-		$templateWrapper->appendChild($serverUserAuthKeyLabel);		
-		*/
 		
 		// append the template
 		$ol->appendChild($this->__getUserInputBlock(array(), true));
@@ -225,8 +274,8 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$serverUserCreatedByLabel = Widget::Label("Created By");
 		$serverUserCreatedByLabel->appendChild(Widget::Input("settings[server][users][created-by][]", $data['created-by']));
 		$wrapper->appendChild($serverUserCreatedByLabel);		
-		$serverUserAuthKeyLabel = Widget::Label("Authentication Key");
-		$serverUserAuthKeyLabel->appendChild(Widget::Input("settings[server][users][auth-key][]", ($template ? "save-to-generate" : $data['auth-key']), "text"));
+		$serverUserAuthKeyLabel = Widget::Label("Authentication Key (leave blank to auto-generate)");
+		$serverUserAuthKeyLabel->appendChild(Widget::Input("settings[server][users][auth-key][]", ($template ? "" : $data['auth-key']), "text"));
 		$wrapper->appendChild($serverUserAuthKeyLabel);	
 
 		return $wrapper;
@@ -234,3 +283,4 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 	}
 }
 
+?>

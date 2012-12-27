@@ -2,21 +2,30 @@
 
 require_once(dirname(__FILE__) . "/logger.class.php");
 require_once(dirname(__FILE__) . "/authenticator.class.php");
+require_once(dirname(__FILE__) . "/versioning.class.php");
+require_once(dirname(__FILE__) . "/statemanager.class.php");
+require_once(dirname(__FILE__) . "/base.class.php");
 
 /*
 	DIM_Server
 	
 	Encapsulates the workings of the DIM server.
 */
-class DIM_Server {
+class DIM_Server extends DIM_Base {
 
 	var $authenticator = null;
-
+	var $versioning = null;
+	var $state = null;
+	var $logger = null;
+	
 	/*
 		->__construct()
 	*/
 	public function __construct() {
 		$this->authenticator = new DIM_Authenticator();
+		$this->versioning = new DIM_Versioning();
+		$this->state = new DIM_StateManager("server");
+		$this->logger = new DIM_Logger();
 	}
 	
 	/*
@@ -30,21 +39,25 @@ class DIM_Server {
 	*/
 	public function handleRequest($requestData) {
 		// this is a system entry point so we need to grab exceptions here
-		try {
+		try {		
 			switch($requestData["action"]) {
-				
-			
-			
+				case "checkout":
+					return $this->handleCheckout($requestData);
+					break;
+				case "checkin":
+					return $this->handleCheckIn($requestData);
+					break;
 				case "test":
 					return "1";
 					break;
 				default:
-					return "0";
+					return "0:query-error";
 					break;
 			}
 		}
 		catch(Exception $e) {
-			DIM_Logger::logException($e);
+			$this->logger->logException($e);
+			return "0:internal-error";
 		}
 	}
 	
@@ -53,9 +66,33 @@ class DIM_Server {
 		Handles a checkout request
 		@params
 			$requestData - the data sent by the client
+		@returns
+			mixed - the result of the request
 	*/
 	private function handleCheckout($requestData) {
-	
+		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
+			if($this->state->isCheckedIn()) {
+				$latestVersion = $this->versioning->getLatestVersion();
+				if($requestData["version"] == $latestVersion) {
+					$this->state->checkOut();
+					$this->logger->addLogItem("Checked Out By {$requestData["email"]}", "state");
+					return "1";				
+				}
+				else if($requestData["version"] > $latestVersion) {
+					return "0:newer-version";
+				}
+				else {
+					return "0:old-version";
+				}	
+			}
+			else {
+				return "0:wrong-state";
+			}
+		}
+		else {
+			$this->logger->addLogItem("Unauthorised checkout attempt by {$requestData["email"]}", "security");
+			return "0:unauthed";
+		}
 	}
 	
 	/*
@@ -63,9 +100,33 @@ class DIM_Server {
 		Handles a checkout request
 		@params
 			$requestData - the data sent by the client
+		@returns
+			mixed - the result of the request
 	*/
 	private function handleCheckin($requestData) {
-
+		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
+			if($this->state->isCheckedOut()) {
+				$latestVersion = $this->versioning->getLatestVersion();
+				if($requestData["old-version"] == $latestVersion) {
+					$this->state->checkIn();
+					$this->logger->addLogItem("Checked In By {$requestData["email"]}", "state");
+					$newVersion = $this->versioning->addNewVersion();
+					$this->logger->addLogItem("Database Now At Version {$newVersion}", "version");
+					return "1:{$newVersion}";					
+				}
+				else {
+					$this->logger->addLogItem("{$requestData["email"]} attempted checkin with version {$requestData["old-version"]}, expected {$latestVersion}");
+					return "0:old-version-incorrect";
+				}
+			}
+			else {
+				return "0:wrong-state";
+			}		
+		}
+		else {
+			$this->logger->addLogItem("Unauthorised checkin attempt by {$requestData["email"]}", "security");
+			return "0:unauthed";
+		}
 	}
 
 	/*

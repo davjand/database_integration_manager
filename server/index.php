@@ -10,6 +10,6 @@
 	require_once(dirname(__FILE__) . "/../lib/server.class.php");
 	
 	$theServer = new DIM_Server();
-	echo($theServer->handleRequest($_POST));
+	echo($theServer->handleRequest($_REQUEST));
 	
 ?>

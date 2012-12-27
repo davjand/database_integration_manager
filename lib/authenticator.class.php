@@ -1,19 +1,19 @@
 <?php
 
-require_once(dirname(__FILE__) . "/configuration.class.php");
+require_once(dirname(__FILE__) . "/base.class.php");
 
 /*
 	DIM_Authenticator
 	
 	Deals with all the authentication required by the DIM_Server
 */
-class DIM_Authenticator {
+class DIM_Authenticator extends DIM_Base {
 	
 	/*
 		->__construct()
 	*/
 	public function __construct() {
-	
+
 	}
 
 	/*
@@ -27,7 +27,7 @@ class DIM_Authenticator {
 			true/false based on whether authentication was succesful
 	*/
 	public function userAuthenticates($email, $authKey) {
-		$cfg = DIM_Configuration::getConfiguration();
+		$cfg = $this->getConfiguration();
 		if($cfg && is_array($cfg["server"]["users"])) {
 			foreach($cfg["server"]["users"] as $u) {
 				if($email == $u['email'] && $authKey == $u['auth-key']) {

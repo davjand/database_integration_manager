@@ -1,9 +1,23 @@
 <?php
 	require_once(EXTENSIONS . "/database_integration_manager/lib/client.class.php");
-	require_once(EXTENSIONS . "/database_integration_manager/lib/configuration.class.php");
+	require_once(EXTENSIONS . "/database_integration_manager/lib/base.class.php");
+	require_once(EXTENSIONS . "/database_integration_manager/lib/statemanager.class.php");
+	require_once(EXTENSIONS . "/database_integration_manager/lib/querymanager.class.php");
+	require_once(EXTENSIONS . "/database_integration_manager/lib/versioning.class.php");
 	
 	class Extension_database_integration_manager extends Extension {
 
+		var $config = null;
+
+		/*
+			->__construct()
+		*/
+		public function __construct() {
+			parent::__construct();
+			$this->config = new DIM_Base();
+		}		
+	
+	
 		/*
 			->install()
 			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#install
@@ -16,6 +30,7 @@
 											  `id` int(11) NOT NULL AUTO_INCREMENT,
 											  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 											  `version` int(11) NOT NULL,
+											  `state` varchar(100) NOT NULL,
 											  PRIMARY KEY (`id`)
 											  ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;');
 
@@ -33,8 +48,9 @@
 		*/
 		public function update($previousVersion) {
 		
-			if($previousVersion = "0.0.1") {
-			
+			if($previousVersion == "0.0.1") {
+				
+				Symphony::Database()->query('ALTER TABLE tbl_dim_versions ADD `state` varchar(100) NOT NULL;');
 			
 			}
 		
@@ -46,6 +62,9 @@
 		*/
 		public function uninstall() {
 		
+			// if they've uninstalled this, then they're outside versioning so we need to delete this
+			Symphony::Database()->query("DROP TABLE tbl_dim_versions;");
+			
 		}		
 	
 		/*
@@ -78,8 +97,28 @@
 					'page'		=> '/backend/',
 					'delegate'	=> 'NavigationPreRender',
 					'callback'	=> 'modifyNavigation'
-				)
+				),
+				array(
+					'page' => '/frontend/',
+					'delegate' => 'PostQueryExecution',
+					'callback' => 'processQuery'
+				),
+				array(
+					'page' => '/backend/',
+					'delegate' => 'PostQueryExecution',
+					'callback' => 'processQuery'
+				)								
 			);
+		}
+		
+		
+		/*
+			->processQuery($context)
+			Marshalls the query into the querymanager for processing
+		*/
+		public function processQuery($context) {
+			$queryManager = new DIM_QueryManager();
+			$queryManager->logNewQuery(trim($context["query"]));
 		}
 		
 		/*
@@ -87,11 +126,20 @@
 			Adds an alert to the administration pages if DIM is installed but not configured.
 		*/
 		public function appendAlerts($context) {
-			if(!DIM_Configuration::isExtensionConfigured()) {
+			if(!$this->config->isExtensionConfigured()) {
 				Administration::instance()->Page->pageAlert(
 					__('Database Integration Manager is installed but not configured. <a href=\'' . SYMPHONY_URL . '/extension/database_integration_manager\'>Configure it now</a>.'),
 					Alert::ERROR
 				);				
+			}
+			else {
+				$versioning = new DIM_Versioning();
+				if($versioning->databaseNeedsUpdating()) {
+					Administration::instance()->Page->pageAlert(
+						__("Your Database Is Out Of Date! <a href='#'>Update It</a>."),
+						Alert::ERROR
+					);
+				}
 			}
 		}
 		
@@ -100,10 +148,14 @@
 			Modify the Symphony admin navigation according to the current mode.
 		*/
 		public function modifyNavigation(&$navigation) {
-			if(DIM_Configuration::isExtensionConfigured()) {
-				switch(DIM_Configuration::getExtensionMode()) {
+			if($this->config->isExtensionConfigured()) {
+				switch($this->config->getExtensionMode()) {
 					case "client":
-						
+						$stateManager = new DIM_StateManager("client");
+						if(!$stateManager->isCheckedOut()) {
+							// clear out the blueprints
+							$navigation["navigation"][200] = array();							
+						}
 						break;
 					case "server":						
 						// clear out the blueprints
@@ -130,7 +182,8 @@
 				true/false based on test result
 		*/
 		public static function testSettings($settings) {
-			if(DIM_Configuration::getDatabaseSettings() != null) {
+			$config = new DIM_Base();
+			if($config->getDatabaseSettings() != null) {
 				switch($settings["mode"]["mode"]) {
 					case "client":
 						return DIM_Client::testClientSettings($settings["client"]);
