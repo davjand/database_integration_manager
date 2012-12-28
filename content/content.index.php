@@ -127,14 +127,6 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 						$this->pageAlert(__("Checkout Failed - '{$errorStr}'"), Alert::ERROR);					
 					}
 					break;
-				case "checkin":
-					if($client->requestCheckin(&$errorStr)) {
-						$this->pageAlert(__('Database checked in!'), Alert::SUCCESS);			
-					}
-					else {
-						$this->pageAlert(__("Checkin Failed - '{$errorStr}'"), Alert::ERROR);					
-					}
-					break;
 			}
 		}		
 		
@@ -184,7 +176,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$linkText = "";
 		if($stateManager->isCheckedOut()) {
 			$stateText = "Checked Out";
-			$linkText = "<a href='?try=checkin'>Check In</a>";		
+			$linkText = "<a href='" . SYMPHONY_URL . "/extension/database_integration_manager/commit'>Check In</a>";		
 		}
 		else {
 			$stateText = "Checked In";
