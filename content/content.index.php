@@ -214,10 +214,12 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 			'jQuery(document).ready(function(){
 					jQuery("#users-duplicator").symphonyDuplicator({
 						orderable: true, 
-						collapsible: true,
-						save_state: true
+						collapsible: true
 					});
-				});
+					
+					jQuery("li.field-user.instance").addClass("collapsed").find("div.content").hide();
+					
+				});				
 			'));		
 		
 		$serverUserFrame = new XMLElement('div', null, array('class' => 'frame'));
