@@ -149,8 +149,22 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 									array("client", ($savedSettings["mode"]["mode"] == "client"), "Client"),
 									array("server", ($savedSettings["mode"]["mode"] == "server"), "Server")
 								);
-		$modeSelectorLabel->appendChild(Widget::Select("settings[mode][mode]", $modeSelectorOptions));
+		// if we're configured then disable the select box by default;
+		$selectOptions = array("id" => "mode-selector");
+		if($savedSettings) {
+			$selectOptions["disabled"] = "disabled";			
+		}
+		
+		$modeSelectorLabel->appendChild(Widget::Select("settings[mode][mode]", $modeSelectorOptions, $selectOptions));
 		$modeFieldset->appendChild($modeSelectorLabel);
+		
+		if($savedSettings) {
+			// The enabler button
+			$modeFieldset->appendChild(Widget::Input("mode-enabler", "Enable Mode Switching", "button", array("id" => "mode-enabler", "class" => "button")));
+			// The enabler script
+			$this->Form->appendChild(new XMLElement('script', 'jQuery(document).ready(function(){jQuery("#mode-enabler").click(function() {  jQuery("#mode-selector").removeAttr("disabled"); jQuery(this).hide(); });});'));
+		}
+		
 		$this->Form->appendChild($modeFieldset);
 	
 		// These below are the 'pickable' blocks
