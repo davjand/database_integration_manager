@@ -127,14 +127,6 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 						$this->pageAlert(__("Checkout Failed - '{$errorStr}'"), Alert::ERROR);					
 					}
 					break;
-				case "checkin":
-					if($client->requestCheckin(&$errorStr)) {
-						$this->pageAlert(__('Database checked in!'), Alert::SUCCESS);			
-					}
-					else {
-						$this->pageAlert(__("Checkin Failed - '{$errorStr}'"), Alert::ERROR);					
-					}
-					break;
 			}
 		}		
 		
@@ -157,8 +149,22 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 									array("client", ($savedSettings["mode"]["mode"] == "client"), "Client"),
 									array("server", ($savedSettings["mode"]["mode"] == "server"), "Server")
 								);
-		$modeSelectorLabel->appendChild(Widget::Select("settings[mode][mode]", $modeSelectorOptions));
+		// if we're configured then disable the select box by default;
+		$selectOptions = array("id" => "mode-selector");
+		if($savedSettings) {
+			$selectOptions["disabled"] = "disabled";			
+		}
+		
+		$modeSelectorLabel->appendChild(Widget::Select("settings[mode][mode]", $modeSelectorOptions, $selectOptions));
 		$modeFieldset->appendChild($modeSelectorLabel);
+		
+		if($savedSettings) {
+			// The enabler button
+			$modeFieldset->appendChild(Widget::Input("mode-enabler", "Enable Mode Switching", "button", array("id" => "mode-enabler", "class" => "button")));
+			// The enabler script
+			$this->Form->appendChild(new XMLElement('script', 'jQuery(document).ready(function(){jQuery("#mode-enabler").click(function() {  jQuery("#mode-selector").removeAttr("disabled"); jQuery(this).hide(); });});'));
+		}
+		
 		$this->Form->appendChild($modeFieldset);
 	
 		// These below are the 'pickable' blocks
@@ -184,7 +190,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$linkText = "";
 		if($stateManager->isCheckedOut()) {
 			$stateText = "Checked Out";
-			$linkText = "<a href='?try=checkin'>Check In</a>";		
+			$linkText = "<a href='" . SYMPHONY_URL . "/extension/database_integration_manager/commit'>Check In</a>";		
 		}
 		else {
 			$stateText = "Checked In";
@@ -208,10 +214,12 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 			'jQuery(document).ready(function(){
 					jQuery("#users-duplicator").symphonyDuplicator({
 						orderable: true, 
-						collapsible: true,
-						save_state: true
+						collapsible: true
 					});
-				});
+					
+					jQuery("li.field-user.instance").addClass("collapsed").find("div.content").hide();
+					
+				});				
 			'));		
 		
 		$serverUserFrame = new XMLElement('div', null, array('class' => 'frame'));

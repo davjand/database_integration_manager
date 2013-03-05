@@ -110,9 +110,9 @@ class DIM_Server extends DIM_Base {
 				if($requestData["old-version"] == $latestVersion) {
 					$this->state->checkIn();
 					$this->logger->addLogItem("Checked In By {$requestData["email"]}", "state");
-					$newVersion = $this->versioning->addNewVersion();
+					$newVersion = $this->versioning->addNewVersion($requestData["new-version"], $requestData["commit-message"]);
 					$this->logger->addLogItem("Database Now At Version {$newVersion}", "version");
-					return "1:{$newVersion}";					
+					return "1:{$newVersion}:{$requestData["commit-message"]}";					
 				}
 				else {
 					$this->logger->addLogItem("{$requestData["email"]} attempted checkin with version {$requestData["old-version"]}, expected {$latestVersion}");

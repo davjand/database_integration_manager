@@ -60,7 +60,7 @@ class DIM_QueryManager extends DIM_Base {
 		@returns
 			string - the file name of the query cache
 	*/
-	private function getQueryCacheFileName() {
+	private function getQueryCacheFilename() {
 		return (dirname(__FILE__) . "/../../../manifest/dim_q_cache");
 	}
 	
@@ -69,7 +69,7 @@ class DIM_QueryManager extends DIM_Base {
 		@returns
 			string - the file name of the update cache
 	*/
-	public function getUpdateCacehFileName() {
+	public function getUpdateCacheFilename() {
 		return (dirname(__FILE__) . "/../../../manifest/dim_u_cache");	
 	}
 	
@@ -156,8 +156,7 @@ class DIM_QueryManager extends DIM_Base {
 			// start by building an update cache..
 			$updateCache = array();
 			
-			$v = $currentVersion;
-			for($v = $currentVersion; $this->checkForVersionFile($v); $v++) {
+			for($v = $currentVersion+1; $this->checkForVersionFile($v); $v++) {
 				include($this->getVersionFileName($v));
 				$updateCache[$v] = $versionData;
 			}
@@ -188,18 +187,25 @@ class DIM_QueryManager extends DIM_Base {
 		
 		// creates $updateCache
 		include($this->getUpdateCacheFilename());
-		
+
 		// sort it backwards so we can POP (which is a nicer sound than SHIFT)
 		krsort($updateCache);
 		
-		while($update = array_pop($updateCache)) {
+		$versioning = new DIM_Versioning();
+		$database = new Database_IO($this->getDatabaseSettings());
 		
-			
-			
+		while($update = array_pop($updateCache)) {
+
+			$database->query(base64_decode($update["queries"]), RETURN_NONE, true);
+		
+			$versioning->addNewVersion($update["version"], $update["commitMessage"]);
 			
 			// save the update cache now in case we die on the next iteration
 			$this->saveUpdateCache($updateCache);
 		}
+	
+		// if we get to here then all is well!
+		unlink($this->getUpdateCacheFilename());
 	
 	}
 	

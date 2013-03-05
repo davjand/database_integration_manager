@@ -31,6 +31,7 @@
 											  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 											  `version` int(11) NOT NULL,
 											  `state` varchar(100) NOT NULL,
+											  `message` varchar(1024) NOT NULL,
 											  PRIMARY KEY (`id`)
 											  ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;');
 
@@ -47,13 +48,16 @@
 			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#update
 		*/
 		public function update($previousVersion) {
-		
-			if($previousVersion == "0.0.1") {
-				
-				Symphony::Database()->query('ALTER TABLE tbl_dim_versions ADD `state` varchar(100) NOT NULL;');
 			
+			// fall through sequential updates
+			switch($previousVersion) {
+				case "0.0.1":
+					Symphony::Database()->query('ALTER TABLE tbl_dim_versions ADD `state` varchar(100) NOT NULL;');
+				case "0.0.2":
+					Symphony::Database()->query('ALTER TABLE tbl_dim_versions ADD `message` varchar(1024) NOT NULL;');	
+					break;
 			}
-		
+	
 		}
 		
 		/*
@@ -136,7 +140,7 @@
 				$versioning = new DIM_Versioning();
 				if($versioning->databaseNeedsUpdating()) {
 					Administration::instance()->Page->pageAlert(
-						__("Your Database Is Out Of Date! <a href='#'>Update It</a>."),
+						__("Your Database Is Out Of Date! <a href='" . SYMPHONY_URL . "/extension/database_integration_manager/update'>Update It</a>."),
 						Alert::ERROR
 					);
 				}

@@ -46,10 +46,11 @@ class DIM_Versioning extends DIM_Base {
 		Puts another version into the database.
 		@params
 			$newVersion - the version to add (optional defaults to -1 which will cause a new number to be generated)
+			$commitMessage - the message of the commit to add to the database (optional, defaults to "")
 		@returns
 			int - the new version number.
 	*/
-	public function addNewVersion($newVersion = -1) {
+	public function addNewVersion($newVersion = -1, $commitMessage = "") {
 		$currentVersion = $this->getLatestVersion();
 		if($newVersion == -1) {
 			$newVersion = $currentVersion + 1;
@@ -63,7 +64,9 @@ class DIM_Versioning extends DIM_Base {
 			$pendingState = "pending";
 		}
 		
-		$sql = "INSERT INTO tbl_dim_versions (version, state) VALUES ({$newVersion}, '{$pendingState}')";
+		$commitMessage = Database_IO::sanitize($commitMessage, 3);
+		
+		$sql = "INSERT INTO tbl_dim_versions (version, state, message) VALUES ({$newVersion}, '{$pendingState}', '{$commitMessage}')";
 		$this->database->query($sql, RETURN_NONE, true);
 		
 		return $newVersion;
