@@ -67,11 +67,13 @@ class DIM_Client extends DIM_Base {
 		->requestCheckin(&$error)
 		Query the server to request a checkin of the database.
 		@params
-			&$error - any errors will populate this variable		
+			&$error - any errors will populate this variable	
+			$newVersion - the new version number
+			$commitMessage - self explanatory!
 		@returns
 			true/false - depending on success or failure
 	*/
-	public function requestCheckin(&$error) {
+	public function requestCheckin(&$error, $newVersion, $commitMessage) {
 	
 		$config = $this->getConfiguration();
 		$versioning = new DIM_Versioning();
@@ -81,7 +83,8 @@ class DIM_Client extends DIM_Base {
 				"email" => $config["client"]["user-email"],
 				"auth-key" => $config["client"]["auth-key"],
 				"version" => ($versioning->getLatestVersion() + 1),
-				"old-version" => $versioning->getLatestVersion()
+				"old-version" => $versioning->getLatestVersion(),
+				"commit-message" => $commitMessage
 			);
 	
 		$rawResponse = Network_IO::makeServerRequest($config["client"]["server-host"], $requestData);
@@ -97,7 +100,7 @@ class DIM_Client extends DIM_Base {
 			$versionFileName = $queryManager->makeVersionFile($responseParts[1], "A Test Commit");
 			$this->logger->addLogItem("Version file {$versionFileName} created", "version");
 			
-			$newVersion = $versioning->addNewVersion();
+			$newVersion = $versioning->addNewVersion($responseParts[1], $responseParts[2]);
 			$this->logger->addLogItem("Database now at version {$newVersion}", "version");
 						
 			
