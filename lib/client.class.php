@@ -93,6 +93,7 @@ class DIM_Client extends DIM_Base {
 		$responseParts = explode(":", $rawResponse);
 		
 		if($responseParts[0] == "1") {
+			
 			// successful checkin!
 			$this->state->checkIn();
 			$this->logger->addLogItem("Database Checked In", "state");

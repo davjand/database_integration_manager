@@ -104,8 +104,11 @@ class DIM_QueryManager extends DIM_Base {
 	public function makeVersionFile($version, $commitMessage) {
 	
 		$versionFilename = $this->getVersionFileName($version);
-	
-		$cacheContents = file_get_contents($this->getQueryCacheFileName());
+		
+		$cacheContents='';
+		if(file_exists($this->getQueryCacheFileName())){
+			$cacheContents = file_get_contents($this->getQueryCacheFileName());	
+		}
 		
 		$versionData = array(
 			"version" => $version,

@@ -19,6 +19,7 @@ require_once(CORE . '/class.administration.php');
 require_once(EXTENSIONS . '/database_integration_manager/lib/server.class.php');
 require_once(EXTENSIONS . '/database_integration_manager/lib/base.class.php');
 require_once(EXTENSIONS . '/database_integration_manager/lib/logger.class.php');
+require_once(EXTENSIONS . '/database_integration_manager/lib/versioning.class.php');
 
 class contentExtensionDatabase_integration_managerLog extends AdministrationPage	
 {	
@@ -39,7 +40,7 @@ class contentExtensionDatabase_integration_managerLog extends AdministrationPage
 	*/
     public function build() {
         parent::build();
-        $this->setTitle('Symphony - DIM Log');
+        $this->setTitle('Symphony - Database Log');
 		
     }
 
@@ -75,6 +76,8 @@ class contentExtensionDatabase_integration_managerLog extends AdministrationPage
 		Constructs the index page via nested XMLElements and populates $this->Form.
 	*/
 	private function __indexPage() {
+	
+		$versioning = new DIM_Versioning();
 		
 		$link = new XMLElement('link');
 		$this->addElementToHead($link, 500);	
