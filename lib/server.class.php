@@ -72,6 +72,12 @@ class DIM_Server extends DIM_Base {
 	private function handleCheckout($requestData) {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
 			if($this->state->isCheckedIn()) {
+				
+				//check latest state
+				if(!$this->versioning->isUpToDate()){
+					return "0:server-not-latest";
+				}
+			
 				$latestVersion = $this->versioning->getLatestVersion();
 				if($requestData["version"] == $latestVersion) {
 					$this->state->checkOut();
@@ -106,11 +112,12 @@ class DIM_Server extends DIM_Base {
 	private function handleCheckin($requestData) {
 		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
 			if($this->state->isCheckedOut()) {
+						
 				$latestVersion = $this->versioning->getLatestVersion();
 				if($requestData["old-version"] == $latestVersion) {
 					$this->state->checkIn();
 					$this->logger->addLogItem("Checked In By {$requestData["email"]}", "state");
-					$newVersion = $this->versioning->addNewVersion($requestData["new-version"], $requestData["commit-message"]);
+					$newVersion = $this->versioning->addNewVersion($requestData["version"], $requestData["commit-message"]);
 					$this->logger->addLogItem("Database Now At Version {$newVersion}", "version");
 					return "1:{$newVersion}:{$requestData["commit-message"]}";					
 				}

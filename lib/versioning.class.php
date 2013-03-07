@@ -89,7 +89,18 @@ class DIM_Versioning extends DIM_Base {
 		}
 		
 		return $latestVersion;
+	}
+	
+	public function isUpToDate(){
+		$sql = "SELECT * FROM tbl_dim_versions ORDER BY version DESC LIMIT 1";
+		$latestVersion = $this->database->query($sql, RETURN_OBJECTS, true);	
 		
+		if($latestVersion[0]->state == 'completed'){
+			return true;
+		}
+		else{
+			return false;
+		}
 	}
 	
 }
