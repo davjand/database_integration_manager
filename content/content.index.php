@@ -128,14 +128,25 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 			switch($_GET["try"]) {
 				case "checkout":
 					if($client->requestCheckout(&$errorStr)) {
-						$this->pageAlert(__('Database checked out!'), Alert::SUCCESS);			
+						redirect('?message=checkout-success');			
 					}
 					else {
 						$this->pageAlert(__("Checkout Failed - '{$errorStr}'"), Alert::ERROR);					
 					}
 					break;
 			}
-		}		
+		}
+		
+		if(isset($_GET["message"])){
+			switch($_GET['message']){
+				case "checkout-success":
+					$this->pageAlert(__('Database checked out'), Alert::SUCCESS);
+					break;
+				case "update-success":
+					$this->pageAlert(__('Database Updated Successfully'), Alert::SUCCESS);
+					break;
+			}
+		}	
 		
 		// Get the saved settings from the file - this will populate $savedSettings
 		$savedSettings = $this->config->getConfiguration();

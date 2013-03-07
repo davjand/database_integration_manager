@@ -96,6 +96,7 @@ class contentExtensionDatabase_integration_managerUpdate extends AdministrationP
 			$querymanager = new DIM_QueryManager();
 			$querymanager->beginUpdate();
 			$message->appendChild(new XMLElement('h2', "Update Completed!"));
+			redirect('../?message=update-success');
 		}
 		else {
 			$message->appendChild(new XMLElement('h2', "Database Already Up To Date"));		
