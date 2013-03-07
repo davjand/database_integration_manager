@@ -84,16 +84,25 @@ class contentExtensionDatabase_integration_managerUpdate extends AdministrationP
 		$this->addElementToHead($link, 500);	
 		
 		$this->setPageType('table');
-		$this->appendSubheading(__('Database Updating'));	
+		$this->appendSubheading(__('Database Updating'));
+		
+		$fieldSet = new XMLElement('fieldset','',array('class'=>'settings'));
+		$fieldSet->appendChild(new XMLElement('legend','Database Update'));
+		
+		$message = new XMLElement('div');	
 		
 		if($versioning->databaseNeedsUpdating()) {
+			
 			$querymanager = new DIM_QueryManager();
 			$querymanager->beginUpdate();
-			$this->Form->appendChild(new XMLElement('p', "Update Completed!"));
+			$message->appendChild(new XMLElement('h2', "Update Completed!"));
 		}
 		else {
-			$this->Form->appendChild(new XMLElement('p', "Database Already Up To Date"));		
+			$message->appendChild(new XMLElement('h2', "Database Already Up To Date"));		
 		}
+		
+		$fieldSet->appendChild($message);
+		$this->Form->appendChild($fieldSet);
 		
 	}
 }

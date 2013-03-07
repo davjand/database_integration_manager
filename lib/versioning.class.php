@@ -32,11 +32,11 @@ class DIM_Versioning extends DIM_Base {
 		
 		$queryManager = new DIM_QueryManager();
 		if($queryManager->checkForVersionFile($latestVersion + 1)) {
-			return true;
+			return true; 
 		}		
 		else {
 			return false;
-		}	
+		}
 	}
 	
 		
@@ -51,22 +51,33 @@ class DIM_Versioning extends DIM_Base {
 			int - the new version number.
 	*/
 	public function addNewVersion($newVersion = -1, $commitMessage = "") {
+	
 		$currentVersion = $this->getLatestVersion();
 		if($newVersion == -1) {
 			$newVersion = $currentVersion + 1;
 		}
 		
-		$pendingState = "";
-		if($this->getExtensionMode() == "client") {
-			$pendingState = "completed";
-		}
-		else {
-			$pendingState = "pending";
-		}
-		
 		$commitMessage = Database_IO::sanitize($commitMessage, 3);
 		
-		$sql = "INSERT INTO tbl_dim_versions (version, state, message) VALUES ({$newVersion}, '{$pendingState}', '{$commitMessage}')";
+		//see if needs updating or inserting
+		$findSql = "SELECT * FROM tbl_dim_versions WHERE `version`={$newVersion}";
+		$findRes = $this->database->query($findSql,RETURN_OBJECTS);
+
+		
+		if(count($findRes)>0){
+			$sql = "UPDATE tbl_dim_versions SET `state`='completed' WHERE `version`={$newVersion}";	
+		}
+		else{
+			$pendingState = "";
+			if($this->getExtensionMode() == "client") {
+				$pendingState = "completed";
+			}
+			elseif($this->getExtensionMode() == "server") {
+				$pendingState = "pending";
+			}
+			$sql = "INSERT INTO tbl_dim_versions (version, state, message) VALUES ({$newVersion}, '{$pendingState}', '{$commitMessage}')";	
+		}
+		
 		$this->database->query($sql, RETURN_NONE, true);
 		
 		return $newVersion;
@@ -81,7 +92,7 @@ class DIM_Versioning extends DIM_Base {
 	*/
 	public function getLatestVersion() {
 		
-		$sql = "SELECT version FROM tbl_dim_versions ORDER BY version DESC LIMIT 1";
+		$sql = "SELECT version FROM tbl_dim_versions WHERE `state`='completed' ORDER BY version DESC LIMIT 1";
 		$latestVersion = $this->database->query($sql, RETURN_VALUE, true);
 
 		if(empty($latestVersion)) {
@@ -96,6 +107,11 @@ class DIM_Versioning extends DIM_Base {
 		$latestVersion = $this->database->query($sql, RETURN_OBJECTS, true);	
 		
 		if($latestVersion[0]->state == 'completed'){
+			
+			//check there aren't updates to be run
+			if($queryManager->checkForVersionFile($latestVersion + 1)) {
+				return false;
+			}
 			return true;
 		}
 		else{

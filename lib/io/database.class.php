@@ -54,10 +54,17 @@ class Database_IO {
 		
 		switch($returnMode) {
 			case RETURN_VALUE:
+				if(!$rawRet){
+					return null;
+				}
 				$proc = mysql_fetch_array($rawRet);
 				return $proc[0];
 				break;
 			case RETURN_OBJECTS:
+				if(!$rawRet){
+					return array();
+				}
+				
 				$objects = array();
 				while($newObj = mysql_fetch_object($rawRet)) {
 					$objects[] = $newObj;				

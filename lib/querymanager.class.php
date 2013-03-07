@@ -3,6 +3,7 @@
 require_once(dirname(__FILE__) . "/base.class.php");
 require_once(dirname(__FILE__) . "/statemanager.class.php");
 require_once(dirname(__FILE__) . "/versioning.class.php");
+require_once(dirname(__FILE__) . "/logger.class.php");
 
 /*
 	DIM_QueryManager
@@ -11,12 +12,14 @@ require_once(dirname(__FILE__) . "/versioning.class.php");
 class DIM_QueryManager extends DIM_Base {
 
 	var $databaseInfo = null;
+	var $logger = null;
 	
 	/*
 		->__construct()
 	*/
 	public function __construct() {
 		$this->databaseInfo = $this->getDatabaseSettings();
+		$this->logger = new DIM_Logger();
 	}
 	
 	/*
@@ -74,6 +77,16 @@ class DIM_QueryManager extends DIM_Base {
 	}
 	
 	/*
+		->getVersionDirectory
+		@returns
+			string - the folder where versions are kept
+	*/
+	public function getVersionDirectory(){
+		return DOCROOT."/data";
+	}
+	
+	
+	/*
 		->getVersionFileName()
 		@params
 			$version - the version filename to get.
@@ -89,6 +102,7 @@ class DIM_QueryManager extends DIM_Base {
 	*/
 	public function checkForVersionFile($version) {
 		$versionFilename = $this->getVersionFileName($version);
+		
 		return file_exists($versionFilename);
 	}
 	
@@ -202,6 +216,8 @@ class DIM_QueryManager extends DIM_Base {
 			$database->query(base64_decode($update["queries"]), RETURN_NONE, true);
 		
 			$versioning->addNewVersion($update["version"], $update["commitMessage"]);
+			
+			$this->logger->addLogItem("Local database now updated to version ".$update["version"], "update");
 			
 			// save the update cache now in case we die on the next iteration
 			$this->saveUpdateCache($updateCache);
