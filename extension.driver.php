@@ -175,7 +175,7 @@
 				$versioning = new DIM_Versioning();
 				if($versioning->databaseNeedsUpdating()) {
 					Administration::instance()->Page->pageAlert(
-						__("Your Database Is Out Of Date! <a href='" . SYMPHONY_URL . "/extension/database_integration_manager/update'>Update It</a>."),
+						__("<a href='" . SYMPHONY_URL . "/extension/database_integration_manager/update'> Your Database Is Out Of Date Update It</a>."),
 						Alert::ERROR
 					);
 				}

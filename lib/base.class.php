@@ -4,6 +4,10 @@ if(!defined("MANIFEST")) {
 	define("MANIFEST", dirname(__FILE__) . "/../../../manifest");
 }
 
+if(!defined("DOCROOT")) {
+	define("DOCROOT", dirname(__FILE__) . "/../../../");
+}
+
 if(!defined("DIM_ROOT")) {
 	define("DIM_ROOT", MANIFEST."/dim");
 }
