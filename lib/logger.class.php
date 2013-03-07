@@ -43,7 +43,7 @@ class DIM_Logger {
 			array - the log items.
 	*/
 	public function readLog($classFilter = 'all') {
-		$fullLog = $this->readRawLog();
+		$fullLog = array_reverse($this->readRawLog());
 		$output = array();
 		foreach($fullLog as $f) {
 			if($f["class"] == $classFilter || $classFilter == 'all') {

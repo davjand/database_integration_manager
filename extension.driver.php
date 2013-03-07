@@ -52,9 +52,10 @@
 			if (!is_dir(DOCROOT.'/data')) {
 			    mkdir(DOCROOT.'/data');
 			}
-			if (!is_dir(DOCROOT.'/data/global')) {
+			/*if (!is_dir(DOCROOT.'/data/global')) {
 			    mkdir(DOCROOT.'/data/global');
-			}
+			} NOT USED AT THE MOMENT */
+			
 			//config folder
 			if (!is_dir(MANIFEST.'/dim')) {
 			    mkdir(MANIFEST.'/dim');
