@@ -1,6 +1,7 @@
 <?php
 
 require_once(dirname(__FILE__) . "/logger.class.php");
+require_once(dirname(__FILE__) . "/querymanager.class.php");
 require_once(dirname(__FILE__) . "/authenticator.class.php");
 require_once(dirname(__FILE__) . "/versioning.class.php");
 require_once(dirname(__FILE__) . "/statemanager.class.php");
@@ -47,6 +48,9 @@ class DIM_Server extends DIM_Base {
 				case "checkin":
 					return $this->handleCheckIn($requestData);
 					break;
+				case "update":
+					return $this->handleUpdate($requestData);
+					break;
 				case "test":
 					return "1";
 					break;
@@ -59,6 +63,26 @@ class DIM_Server extends DIM_Base {
 			$this->logger->logException($e);
 			return "0:internal-error";
 		}
+	}
+	
+	/*
+		-handleUpdate($requestData)
+		@params
+			$requestData - the data sent by the client
+		Authenticates the user and processes the update
+	*/
+	private function handleUpdate($requestData){
+		if($this->authenticator->userAuthenticates($requestData["email"], $requestData["auth-key"])) {
+			$versioning = new DIM_Versioning();
+		
+			if($versioning->databaseNeedsUpdating()) {
+				
+				$querymanager = new DIM_QueryManager();
+				$querymanager->beginUpdate();
+				return 1;
+			}
+			return 0;
+		}		
 	}
 	
 	/*
