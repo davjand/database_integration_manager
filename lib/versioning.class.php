@@ -102,14 +102,27 @@ class DIM_Versioning extends DIM_Base {
 		return $latestVersion;
 	}
 	
+	/*
+		->isUpToDate
+		
+		Returns true if the database is completely up to date (no pending updates)
+		
+		@returns true/false
+	*/
 	public function isUpToDate(){
 		$sql = "SELECT * FROM tbl_dim_versions ORDER BY version DESC LIMIT 1";
 		$latestVersion = $this->database->query($sql, RETURN_OBJECTS, true);	
 		
+		if(count($latestVersion)==0){
+			return true; //no versions yet!
+		}
+		
 		if($latestVersion[0]->state == 'completed'){
 			
+			$queryManager = new DIM_QueryManager();
+			
 			//check there aren't updates to be run
-			if($queryManager->checkForVersionFile($latestVersion + 1)) {
+			if($queryManager->checkForVersionFile($latestVersion[0]->version + 1)) {
 				return false;
 			}
 			return true;

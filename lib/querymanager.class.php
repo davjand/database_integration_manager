@@ -212,9 +212,10 @@ class DIM_QueryManager extends DIM_Base {
 		$database = new Database_IO($this->getDatabaseSettings());
 		
 		while($update = array_pop($updateCache)) {
-
-			$database->query(base64_decode($update["queries"]), RETURN_NONE, true);
-		
+			//echo base64_decode($update["queries"]);
+			
+			$database->query(base64_decode($update["queries"]), MULTI_QUERY, true);
+			
 			$versioning->addNewVersion($update["version"], $update["commitMessage"]);
 			
 			$this->logger->addLogItem("Local database now updated to version ".$update["version"], "update");
