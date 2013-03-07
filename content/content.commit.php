@@ -95,8 +95,9 @@ class contentExtensionDatabase_integration_managerCommit extends AdministrationP
 		
 		if(!$error){
 			if($client->requestCheckin(&$errorStr, $_POST['checkin']['version'], $_POST['checkin']['message'])) {
-				$this->pageAlert(__('Database checked in!'), Alert::SUCCESS);
-				$_POST['success']='success';			
+				
+				$_POST['success']='success';
+				redirect('../?message=commit-success');
 			}
 			else {
 				$this->pageAlert(__("Checkin Failed - '{$errorStr}'"), Alert::ERROR);					

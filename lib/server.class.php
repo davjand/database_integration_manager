@@ -79,10 +79,12 @@ class DIM_Server extends DIM_Base {
 				
 				$querymanager = new DIM_QueryManager();
 				$querymanager->beginUpdate();
-				return 1;
+				return "1:update-success";
 			}
-			return 0;
-		}		
+			return "0:no-update-available";
+			
+		}
+		return "0:unauthed";	
 	}
 	
 	/*

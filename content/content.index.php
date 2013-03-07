@@ -140,7 +140,10 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		if(isset($_GET["message"])){
 			switch($_GET['message']){
 				case "checkout-success":
-					$this->pageAlert(__('Database checked out'), Alert::SUCCESS);
+					$this->pageAlert(__('Database Checkout Out Successfully'), Alert::SUCCESS);
+					break;
+				case "commit-success":
+					$this->pageAlert(__('Database Checked In Successfully'), Alert::SUCCESS);
 					break;
 				case "update-success":
 					$this->pageAlert(__('Database Updated Successfully'), Alert::SUCCESS);
