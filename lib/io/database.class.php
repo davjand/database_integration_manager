@@ -18,6 +18,7 @@ class Database_IO {
 	const RETURN_VALUE = "1";
 	const RETURN_OBJECTS = "2";
 	const RETURN_NONE = "3";
+	const MULTI_QUERY = "99";
 	
 	
 	/*
@@ -27,8 +28,14 @@ class Database_IO {
 			$databaseParams - the details of the database to connect to. Usually just what is in the Symphony config.
 	*/
 	public function __construct($databaseParams) {
-		$this->dbConnection = mysql_connect($databaseParams["host"] . ":" . $databaseParams["port"], $databaseParams["user"], $databaseParams["password"]);
-		mysql_select_db($databaseParams["db"], $this->dbConnection);
+		$this->dbConnection = new mysqli(
+			$databaseParams["host"],
+			$databaseParams["user"],
+			$databaseParams["password"],
+			$databaseParams["db"],
+			$databaseParams["port"]);
+		
+		//mysql_select_db($databaseParams["db"], $this->dbConnection);
 		
 		$this->tablePrefix = $databaseParams["tbl_prefix"];
 	}
@@ -47,40 +54,53 @@ class Database_IO {
 		$sql = str_replace("tbl_", $this->tablePrefix, $sql);
 		
 		if(!$suppressSanitize) {
-			$sql = self::sanitize($sql, 1);
+			$sql = $this->sanitize($sql, 1);
 		}
-
-		$rawRet = mysql_query($sql, $this->dbConnection);
 		
-		switch($returnMode) {
-			case RETURN_VALUE:
-				if(!$rawRet){
-					return null;
-				}
-				$proc = mysql_fetch_array($rawRet);
-				return $proc[0];
-				break;
-			case RETURN_OBJECTS:
-				if(!$rawRet){
-					return array();
-				}
-				
-				$objects = array();
-				while($newObj = mysql_fetch_object($rawRet)) {
-					$objects[] = $newObj;				
-				}
-				return $objects;
-				break;
-			case RETURN_NONE:
-			default:
-				return null;
-				break;
+		
+		if($returnMode == MULTI_QUERY){
+			$rawRet = $this->dbConnection->multi_query($sql);
+			if(!$rawRet){
+				print_r(mysql_error());
+			}
+			return $rawRet;
 		}
+		else{
+			$rawRet = $this->dbConnection->query($sql);
+			
+			switch($returnMode) {
+				case RETURN_VALUE:
+				
+					if(!$rawRet && $rawRet!=null){
+						return null;
+					}
+					$proc = $rawRet->fetch_array();
+					return $proc[0];
+					break;
+				case RETURN_OBJECTS:
+				
+					if(!$rawRet){
+						return array();
+					}
+					
+					$objects = array();
+					while($newObj = $rawRet->fetch_object()) {
+						$objects[] = $newObj;				
+					}
+					return $objects;
+					break;
+				case RETURN_NONE:
+				default:
+					return null;
+				break;
+			}	
+		}
+		
 		
 	}
 	
 	/*
-		::sanitize($sql, $level)
+		->sanitize($sql, $level)
 		Sanitize the SQL string passed.
 		@params 
 			$sql - the SQL statement or partial statement to santize
@@ -88,7 +108,7 @@ class Database_IO {
 		@returns
 			string - the sanitized SQL
 	*/
-	public static function sanitize($sql, $level = 1) {
+	public function sanitize($sql, $level = 1) {
 		// deliberately fall through the cases, ensures one level doesn't accidentally create an attack vector that would
 		// then bypass another filter.
 		switch($level) {
@@ -123,7 +143,7 @@ class Database_IO {
 				
 			case 1:
 				// just escape the string
-				$sql = mysql_real_escape_string($sql);
+				$sql =  mysql_real_escape_string($sql);
 				break;
 		}
 		return $sql;	
