@@ -70,7 +70,9 @@ class contentExtensionDatabase_integration_managerCommit extends AdministrationP
 	public function action() {
 	
 		$client = new DIM_Client();
-	
+		
+		
+		
 		if($client->requestCheckin(&$errorStr, $_POST['checkin']['version'], $_POST['checkin']['message'])) {
 			$this->pageAlert(__('Database checked in!'), Alert::SUCCESS);			
 		}

@@ -4,6 +4,13 @@ if(!defined("MANIFEST")) {
 	define("MANIFEST", dirname(__FILE__) . "/../../../manifest");
 }
 
+if(!defined("DIM_ROOT")) {
+	define("DIM_ROOT", MANIFEST."/dim");
+}
+if(!defined("DIM_CONFIG")) {
+	define("DIM_CONFIG", DIM_ROOT."/config.php");
+}
+
 /*
 	DIM_Base
 	
@@ -16,7 +23,7 @@ class DIM_Base {
 	/*
 		Needs to be stored in the manifest folder.
 	*/
-	var $_CONFIG_FILE = "/../../manifest/dim_config.php";
+	var $_CONFIG_FILE = DIM_CONFIG;
 
 	/*
 		->isExtensionConfigured()
@@ -31,7 +38,7 @@ class DIM_Base {
 		Returns the fully qualified path of the extension configuration file
 	*/
 	public function getExtensionConfigPath() {
-		return (dirname(__FILE__) . "/../" . $this->_CONFIG_FILE);
+		return ($this->_CONFIG_FILE);
 	}	
 	
 	/*

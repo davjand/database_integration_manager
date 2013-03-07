@@ -15,7 +15,7 @@ class DIM_StateManager {
 		->__construct()
 	*/
 	public function __construct($mode) {
-		$this->STATE_FILE = dirname(__FILE__) . "/../../../manifest/dim_{$mode}_state.php";
+		$this->STATE_FILE = MANIFEST."/dim/{$mode}_state.php";
 	}
 	
 	/*

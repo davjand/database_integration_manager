@@ -60,7 +60,7 @@ class DIM_Logger {
 			the path of the log file
 	*/
 	public function getLogPath() {
-		return (dirname(__FILE__) . "/../../../manifest/dim_log.php");
+		return (MANIFEST . "/dim/dim_log.php");
 	}
 	
 	/*

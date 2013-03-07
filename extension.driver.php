@@ -36,9 +36,33 @@
 											  ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;');
 
 			} catch(Exception $e) { return false; }
-
+			
+			$this->createFolders();
+			
 			return true;
 		
+		}
+		
+		/*
+			->createFolders()
+			Create all folders required if they don't already exist
+		*/
+		public function createFolders(){
+			//data folder
+			if (!is_dir(DOCROOT.'/data')) {
+			    mkdir(DOCROOT.'/data');
+			}
+			if (!is_dir(DOCROOT.'/data/global')) {
+			    mkdir(DOCROOT.'/data/global');
+			}
+			//config folder
+			if (!is_dir(MANIFEST.'/dim')) {
+			    mkdir(MANIFEST.'/dim');
+			}
+			//cache folder
+			if (!is_dir(MANIFEST.'/dim/g_cache')) {
+			    mkdir(MANIFEST.'/dim/g_cache');
+			}	
 		}
 		
 
@@ -55,8 +79,12 @@
 					Symphony::Database()->query('ALTER TABLE tbl_dim_versions ADD `state` varchar(100) NOT NULL;');
 				case "0.0.2":
 					Symphony::Database()->query('ALTER TABLE tbl_dim_versions ADD `message` varchar(1024) NOT NULL;');	
+				case "0.0.3":
+					
 					break;
 			}
+			
+			$this->createFolders();
 	
 		}
 		
@@ -79,8 +107,14 @@
 			return array(
 				array(
 					'location'	=> __('System'),
-					'name'		=> __('DIM Configuration'),
+					'name'		=> __('Database Manager'),
 					'link'		=> '/',
+					'limit'		=> 'developer'
+				),
+				array(
+					'location'	=> __('System'),
+					'name'		=> __('Database Log'),
+					'link'		=> '/log',
 					'limit'		=> 'developer'
 				)
 			);
@@ -188,6 +222,7 @@
 		public static function testSettings($settings) {
 			$config = new DIM_Base();
 			if($config->getDatabaseSettings() != null) {
+			
 				switch($settings["mode"]["mode"]) {
 					case "client":
 						return DIM_Client::testClientSettings($settings["client"]);

@@ -48,7 +48,7 @@ class DIM_QueryManager extends DIM_Base {
 			if (!preg_match('/;$/', $query)) $query .= ";";			
 		
 			if($query != "") {
-				file_put_contents($this->getCacheFileName(), $query . "\r\n", FILE_APPEND);	
+				file_put_contents($this->getQueryCacheFilename(), $query . "\r\n", FILE_APPEND);	
 			}
 		
 		}		
@@ -61,7 +61,7 @@ class DIM_QueryManager extends DIM_Base {
 			string - the file name of the query cache
 	*/
 	private function getQueryCacheFilename() {
-		return (dirname(__FILE__) . "/../../../manifest/dim_q_cache");
+		return (MANIFEST."/dim/q_cache");
 	}
 	
 	/*
@@ -70,7 +70,7 @@ class DIM_QueryManager extends DIM_Base {
 			string - the file name of the update cache
 	*/
 	public function getUpdateCacheFilename() {
-		return (dirname(__FILE__) . "/../../../manifest/dim_u_cache");	
+		return (MANIFEST."/dim/u_cache");	
 	}
 	
 	/*
@@ -81,7 +81,7 @@ class DIM_QueryManager extends DIM_Base {
 			string - the file name
 	*/		
 	private function getVersionFileName($version) {
-		return dirname(__FILE__) . "/../../../data/version.{$version}.php";		
+		return DOCROOT."/data/version.{$version}.php";		
 	}
 	
 	/*

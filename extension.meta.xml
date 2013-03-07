@@ -12,11 +12,14 @@
 			<website>http://www.devjet.co.uk</website>
 		</author>
 		<author>
-			<name github="davjand" symphony="team">Dave Anderson</name>
+			<name github="davjand" symphony="team">David Anderson</name>
 			<website>http://veodesign.co.uk</website>
 		</author>
 	</authors>
 	<releases>
+		<release version="0.0.4" date="2012-12-28" min="2.3">
+			Bugfix and Refactor Release
+		</release>
 		<release version="0.0.3" date="2012-12-28" min="2.3">
 			Adding commit functions.
 		</release>

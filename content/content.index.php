@@ -88,6 +88,13 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 				$_POST["settings"]["server"]["users"] = $transformedArray;
 			}			
 			
+			//ensure the mode is set in the settings
+			if(!isset($_POST['settings']['mode']['mode'])){
+				$ss = $this->config->getConfiguration();
+				$_POST['settings']['mode']['mode'] = $ss['mode']['mode'];
+			}
+			
+			
 			if(extension_database_integration_manager::testSettings($_POST["settings"])) {
 				$logger = new DIM_Logger();
 				$logger->addLogItem("Configuration Updated", "system");
@@ -96,7 +103,8 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 				$this->pageAlert(__('Configuration Settings updated successfully.'), Alert::SUCCESS);			
 			}
 			else {
-				$this->pageAlert(__('One or more settings were incorrect.'), Alert::ERROR);			
+				$this->pageAlert(__('One or more settings were incorrect.'), Alert::ERROR);
+				$_POST['error']='error';	
 			}
 
 		}
@@ -107,12 +115,11 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		Constructs the index page via nested XMLElements and populates $this->Form.
 	*/
 	private function __indexPage() {
-		
 		$link = new XMLElement('link');
 		$this->addElementToHead($link, 500);	
 		
 		$this->setPageType('form');
-		$this->appendSubheading(__('DIM Configuration'));		
+		$this->appendSubheading(__('Database Integration Manager'));		
 
 		// Checkout/in?
 		if(isset($_GET["try"])) {
@@ -133,74 +140,170 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		// Get the saved settings from the file - this will populate $savedSettings
 		$savedSettings = $this->config->getConfiguration();
 		
+		
+		/***************************************
+		
+			!Mode Selector
+			
+		***************************************/
+		
+		
 		// The mode is the 'picker' - nice UI and also necessary for validation functioning
 		
-		// Add the picker script
-		$this->Form->appendChild(new XMLElement('script', 'jQuery(document).ready(function(){jQuery("select").symphonyPickable();});'));
+		//Should the mode be locked or not
+		$modeLocked = $savedSettings && ($savedSettings['mode']['mode'] == $_POST['settings']['mode']['mode'] || !isset($_POST['settings']['mode']['mode']));
 		
 		// Build the 'Mode' fieldset
-		$modeFieldset = new XMLElement('fieldset');
-		$modeFieldset->setAttribute("class", "settings picker");
+		
+		$modeFieldset = new XMLElement('fieldset','',array('class'=>'settings picker'));
 		$modeFieldset->appendChild(new XMLElement('legend', __("Mode")));
 		$modeSelectorLabel = Widget::Label("Mode");
-		$modeSelectorOptions = array(
-									/* if $savedSettings[mode][mode] is null, the top option will be picked */
-									array("disabled", ($savedSettings["mode"]["mode"] == "disabled"), "Disabled"),
-									array("client", ($savedSettings["mode"]["mode"] == "client"), "Client"),
-									array("server", ($savedSettings["mode"]["mode"] == "server"), "Server")
-								);
-		// if we're configured then disable the select box by default;
-		$selectOptions = array("id" => "mode-selector");
-		if($savedSettings) {
-			$selectOptions["disabled"] = "disabled";			
+		
+
+		//fill with POST data if possible
+		$modeSelected = '';
+		if(isset($_POST['settings']['mode']['mode'])){
+			$modeSelected = $_POST['settings']['mode']['mode'];
 		}
+		elseif(isset($savedSettings['mode']['mode'])){
+			$modeSelected = $savedSettings['mode']['mode'];
+		}
+		
+		$modeSelectorOptions = array(
+									array("disabled", ($modeSelected == "disabled"), "Disabled"),
+									array("client", ($modeSelected == "client"), "Client"),
+									array("server", ($modeSelected == "server"), "Server")
+								);
+
+
+		$selectOptions = array("id" => "mode-selector");
+		if($modeLocked) {$selectOptions["disabled"] = "disabled";}
 		
 		$modeSelectorLabel->appendChild(Widget::Select("settings[mode][mode]", $modeSelectorOptions, $selectOptions));
-		$modeFieldset->appendChild($modeSelectorLabel);
 		
-		if($savedSettings) {
+		$modeWrapper = new XMLElement('div',
+				new XMLElement('div',$modeSelectorLabel, array('class'=>'column')),
+			array('class'=>'two columns')
+			);
+		
+		if($modeLocked) {
 			// The enabler button
-			$modeFieldset->appendChild(Widget::Input("mode-enabler", "Enable Mode Switching", "button", array("id" => "mode-enabler", "class" => "button")));
+			$modeChangerLabel = Widget::Label("Mode Currently Locked");
+			$modeChangerLabel->appendChild(new XMLElement('br'));
+			$modeChangerLabel->appendChild(
+				Widget::Input("mode-enabler", "Allow Mode to Be Changed", "button", array("id" => "mode-enabler", "class" => "button"))
+			);
+			
+			$modeWrapper->appendChild(new XMLElement('div',
+					$modeChangerLabel,
+				array('class'=>'column')
+			));
 			// The enabler script
-			$this->Form->appendChild(new XMLElement('script', 'jQuery(document).ready(function(){jQuery("#mode-enabler").click(function() {  jQuery("#mode-selector").removeAttr("disabled"); jQuery(this).hide(); });});'));
+			$this->Form->appendChild(new XMLElement('script', 'jQuery(document).ready(function(){jQuery("#mode-enabler").click(function() {  jQuery("#mode-selector").removeAttr("disabled"); jQuery(this).parent().hide(); });});'));
 		}
+		
+		$modeFieldset->appendChild($modeWrapper);
 		
 		$this->Form->appendChild($modeFieldset);
-	
+		$this->Form->appendChild(new XMLElement('script', 'jQuery(document).ready(function(){jQuery("#mode-selector").symphonyPickable();});'));
+		
+		
 		// These below are the 'pickable' blocks
 
-		// Client Settings Block
-		$clientFieldset = new XMLElement('fieldset');
-		$clientFieldset->setAttribute("class", "settings pickable");
-		$clientFieldset->setAttribute("id", "client");
+		/***************************************
+		
+			!Client Settings
+			
+		***************************************/
+		
+		//Build an array of settings so that the form can be prepopulated with settings || $_POST
+		if(is_array($savedSettings['client'])){
+			$clientSettings = $savedSettings['client'];	
+		}
+		else{
+			$clientSettings = array();
+		}
+		
+		//fill the form with post data if possible
+		if(is_array($_POST['settings']['client'])){
+			foreach($_POST['settings']['client'] as $cKey => $cVal){
+				if(!array_key_exists($cKey, $clientSettings)){
+					$clientSettings[$cKey]=$cVal;
+				}
+			}
+		}
+		
+		//an encompassing object for the entire client settings
+		$clientWrapper = new XMLElement('div','',array('id'=>'client', "class" => "pickable", 'style'=>'border-top: 1px solid rgba(0, 0, 0, 0.1);'));
+		
+		
+		//Check in / out interface
+		if($savedSettings && $savedSettings['mode']['mode']=='client'){
+			
+			$clientActionFieldset = new XMLElement('fieldset','',array('class'=>'settings'));
+			$clientActionFieldset->appendChild(new XMLElement('legend',__('Status')));
+		
+			$stateManager = new DIM_StateManager("client");
+			$stateText = "";
+			$linkText = "";
+			if($stateManager->isCheckedOut()) {
+				$stateText = "Checked Out";
+				$linkText = "<a class='button' href='" . SYMPHONY_URL . "/extension/database_integration_manager/commit'>Check In</a>";		
+			}
+			else {
+				$stateText = "Checked In";
+				$linkText = "<a class='button' href='?try=checkout'>Check Out</a>";			
+			}
+			$clientActionFieldset->appendChild(new XMLElement('div', "{$linkText} &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));
+			
+			$clientWrapper->appendChild($clientActionFieldset);			
+		}
+		
+		
+		//Client Authentication Settings
+		$clientFieldset = new XMLElement('fieldset','',array('class'=>'settings'));
+		$clientFieldset->appendChild(new XMLElement('legend',__('Client')));
+		
 		$liveServerUrlLabel = Widget::Label("Live Server Host or IP (can append a subdirectory if required)");
-		$liveServerUrlLabel->appendChild(Widget::Input("settings[client][server-host]", $savedSettings["client"]["server-host"]));
-		$clientFieldset->appendChild($liveServerUrlLabel);
+		$liveServerUrlLabel->appendChild(Widget::Input("settings[client][server-host]", $clientSettings["server-host"]));
 		
 		$emailAddressLabel = Widget::Label("Email Address");
-		$emailAddressLabel->appendChild(Widget::Input("settings[client][user-email]", $savedSettings["client"]["user-email"]));
-		$clientFieldset->appendChild($emailAddressLabel);
+		$emailAddressLabel->appendChild(Widget::Input("settings[client][user-email]", $clientSettings["user-email"]));
 		
 		$authKeyLabel = Widget::Label("Authentication Key");
-		$authKeyLabel->appendChild(Widget::Input("settings[client][auth-key]", $savedSettings["client"]["auth-key"]));
-		$clientFieldset->appendChild($authKeyLabel);
-
-		$stateManager = new DIM_StateManager("client");
-		$stateText = "";
-		$linkText = "";
-		if($stateManager->isCheckedOut()) {
-			$stateText = "Checked Out";
-			$linkText = "<a href='" . SYMPHONY_URL . "/extension/database_integration_manager/commit'>Check In</a>";		
-		}
-		else {
-			$stateText = "Checked In";
-			$linkText = "<a href='?try=checkout'>Check Out</a>";			
-		}
-		$clientFieldset->appendChild(new XMLElement('div', "{$linkText} &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));			
+		$authKeyLabel->appendChild(Widget::Input("settings[client][auth-key]", $clientSettings["auth-key"]));
 		
-		$this->Form->appendChild($clientFieldset);
+		
+		$clientFieldWrapper = new XMLElement('div');
+		$clientFieldWrapper->appendChild($liveServerUrlLabel);
+		
+		$clientCredentials = new XMLElement('div','',array('class'=>'two columns'));
+		
+		$clientCredentials->appendChild(new XMLElement('div',$emailAddressLabel,array('class'=>'column','style'=>'margin-bottom: 0px;')));
+		$clientCredentials->appendChild(new XMLElement('div',$authKeyLabel,array('class'=>'column', 'style'=>'margin-bottom: 0px;')));
+		$clientFieldWrapper->appendChild($clientCredentials);
+		
+		//see if error
+		if(isset($_POST['error']) && $_POST['settings']['mode']['mode'] == 'client'){
+			$clientFieldWrapper->setAttribute('class','invalid');
+			$clientFieldWrapper->appendChild(
+				new XMLElement('p','Invalid Settings: Please reconfigure')
+			);	
+		}
+		$clientFieldset->appendChild($clientFieldWrapper);		
+		
+		
+		
+		$clientWrapper->appendChild($clientFieldset);
+		$this->Form->appendChild($clientWrapper);
 
-		// Server Settings Block	
+		
+		/***************************************
+		
+			!Server Settings
+			
+		***************************************/
+			
 		$serverFieldset = new XMLElement('fieldset');
 		$serverFieldset->setAttribute("class", "settings pickable");
 		$serverFieldset->setAttribute("id", "server");
@@ -208,7 +311,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$stateManager = new DIM_StateManager("server");
 		$stateText = ($stateManager->isCheckedOut() ? "Checked Out" : "Checked In");
 		
-		$serverFieldset->appendChild(new XMLElement('div', "<a href='log'>View Log</a> &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));	
+		$serverFieldset->appendChild(new XMLElement('div', "<a class='button' href='log'>View Log</a> &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));	
 		
 		$this->Form->appendChild(new XMLElement('script', 
 			'jQuery(document).ready(function(){
@@ -241,18 +344,22 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$serverFieldset->appendChild($serverUserFrame);
 		
 		$this->Form->appendChild($serverFieldset);
-	
+		
+		/***************************************
+		
+			!Default Settings
+			
+		***************************************/
+		
 		// Default/Disabled Settings Block
-		$disabledFieldset = new XMLElement('fieldset');
-		$disabledFieldset->setAttribute("class", "settings pickable");
-		$disabledFieldset->setAttribute("id", "disabled");
+		$disabledFieldset = new XMLElement('div','', array('class'=>'pickable','id'=>'disabled'));
 		$this->Form->appendChild($disabledFieldset);		
 		
 		// Add the 'Save' button
 		$saveDiv = new XMLElement('div');
 		$saveDiv->setAttribute('class', 'actions');
 		$saveDiv->appendChild(Widget::Input('action[save]', __('Save Settings'), 'submit', array('accesskey' => 's')));
-		$this->Form->appendChild($saveDiv);			
+		$this->Form->appendChild($saveDiv);		
 	}
 	
 	/*
@@ -270,22 +377,42 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$wrapper->setAttribute('data-type', 'user');
 		$header = new XMLElement('header', ($template ? '<strong>New User</strong>' : $data['firstname'] . ' ' . $data['lastname']) , array("class" => "main"));
 		$wrapper->appendChild($header);
-		$serverUserFirstnameLabel = Widget::Label("First Name");
-		$serverUserFirstnameLabel->appendChild(Widget::Input("settings[server][users][firstname][]", $data['firstname']));
-		$wrapper->appendChild($serverUserFirstnameLabel);		
-		$serverUserLastnameLabel = Widget::Label("Last Name");
-		$serverUserLastnameLabel->appendChild(Widget::Input("settings[server][users][lastname][]", $data['lastname']));
-		$wrapper->appendChild($serverUserLastnameLabel);		
-		$serverUserEmailLabel = Widget::Label("Email");
-		$serverUserEmailLabel->appendChild(Widget::Input("settings[server][users][email][]", $data['email']));
-		$wrapper->appendChild($serverUserEmailLabel);
-		$serverUserCreatedByLabel = Widget::Label("Created By");
-		$serverUserCreatedByLabel->appendChild(Widget::Input("settings[server][users][created-by][]", $data['created-by']));
-		$wrapper->appendChild($serverUserCreatedByLabel);		
-		$serverUserAuthKeyLabel = Widget::Label("Authentication Key (leave blank to auto-generate)");
-		$serverUserAuthKeyLabel->appendChild(Widget::Input("settings[server][users][auth-key][]", ($template ? "" : $data['auth-key']), "text"));
-		$wrapper->appendChild($serverUserAuthKeyLabel);	
+		
+		$columnsWrapper = new XMLElement('div','',array('class'=>'two columns'));
+		
+		$serverUserFirstnameLabel = Widget::Label("First Name",
+			Widget::Input("settings[server][users][firstname][]", $data['firstname']),
+			'column');
+		
+		$serverUserLastnameLabel = Widget::Label("Last Name",
+			Widget::Input("settings[server][users][lastname][]", $data['lastname']),
+			'column');
 
+		$serverUserEmailLabel = Widget::Label("Email",
+			Widget::Input("settings[server][users][email][]", $data['email']),
+			'column');
+
+		
+		$createdBy = $data['created-by'];
+		if(empty($createdBy)){
+			$createdBy = Administration::instance()->Author->getFullName();	
+		}
+		$serverUserCreatedByLabel = Widget::Label("Created By",
+			Widget::Input("settings[server][users][created-by][]",$createdBy),
+			'column');
+		
+		$serverUserAuthKeyLabel = Widget::Label("Authentication Key (leave blank to auto-generate)",
+			Widget::Input("settings[server][users][auth-key][]", ($template ? "" : $data['auth-key']), "text"),
+			'column');
+		
+		$columnsWrapper->appendChild($serverUserFirstnameLabel);
+		$columnsWrapper->appendChild($serverUserLastnameLabel);
+		$columnsWrapper->appendChild($serverUserEmailLabel);
+		$columnsWrapper->appendChild($serverUserCreatedByLabel);
+		$columnsWrapper->appendChild($serverUserAuthKeyLabel);
+		
+		$wrapper->appendChild($columnsWrapper);
+		
 		return $wrapper;
 	
 	}
