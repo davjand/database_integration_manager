@@ -41,7 +41,7 @@ class contentExtensionDatabase_integration_managerCommit extends AdministrationP
 	*/
     public function build() {
         parent::build();
-        $this->setTitle('Symphony - DIM Log');
+        $this->setTitle('Symphony - Database Check In');
 		
     }
 
@@ -70,16 +70,38 @@ class contentExtensionDatabase_integration_managerCommit extends AdministrationP
 	public function action() {
 	
 		$client = new DIM_Client();
+		$versioning = new DIM_Versioning();
 		
+		$error = false;
 		
-		
-		if($client->requestCheckin(&$errorStr, $_POST['checkin']['version'], $_POST['checkin']['message'])) {
-			$this->pageAlert(__('Database checked in!'), Alert::SUCCESS);			
+		if(empty($_POST['checkin']['version']) && $_POST['checkin']['version'] != '0'){
+			$_POST['error']['version']='empty';
+			$error = true;
 		}
-		else {
-			$this->pageAlert(__("Checkin Failed - '{$errorStr}'"), Alert::ERROR);					
+		elseif(!is_numeric($_POST['checkin']['version'])){
+			$_POST['error']['version']='invalid';
+			$error = true;
 		}
-
+		elseif(floatval($_POST['checkin']['version']) <= $versioning->getLatestVersion() ){
+			$_POST['error']['version']='less-than-version';
+			$error = true;
+		}
+		
+		if(empty($_POST['checkin']['message'])){
+			$_POST['error']['message']='empty';
+			$error = true;
+		}
+		
+		
+		if(!$error){
+			if($client->requestCheckin(&$errorStr, $_POST['checkin']['version'], $_POST['checkin']['message'])) {
+				$this->pageAlert(__('Database checked in!'), Alert::SUCCESS);
+				$_POST['success']='success';			
+			}
+			else {
+				$this->pageAlert(__("Checkin Failed - '{$errorStr}'"), Alert::ERROR);					
+			}
+		}
 	}
 	
 	/*
@@ -87,32 +109,89 @@ class contentExtensionDatabase_integration_managerCommit extends AdministrationP
 		Constructs the index page via nested XMLElements and populates $this->Form.
 	*/
 	private function __indexPage() {
-
+		
 		$versioning = new DIM_Versioning();
-	
+		
 		$link = new XMLElement('link');
 		$this->addElementToHead($link, 500);	
 		
 		$this->setPageType('form');
-		$this->appendSubheading(__('Database Check-In'));	
+		$this->appendSubheading(__('Database Check In'));	
 		
 		$checkinFieldset = new XMLElement('fieldset');
 		$checkinFieldset->setAttribute("class", "settings picker");
-		$checkinFieldset->appendChild(new XMLElement('legend', __("Check-In")));		
-		$versionLabel = Widget::Label("Version");
-		$versionLabel->appendChild(Widget::Input("checkin[version]", ""));
-		$checkinFieldset->appendChild($versionLabel);
-		$messageLabel = Widget::Label("Commit Message");
-		$messageLabel->appendChild(Widget::Input("checkin[message]", ""));
-		$checkinFieldset->appendChild($messageLabel);
+		$checkinFieldset->appendChild(new XMLElement('legend', __("Version Information")));		
 		
-		$this->Form->appendChild($checkinFieldset);
+		if(isset($_POST['success'])){
+			$successWrapper = new XMLElement('div','',array('class'=>'two columns'));
+			
+			$successWrapper->appendChild( new XMLElement('div',
+				new XMLElement("h3","Database Checked in"),
+				array('class'=>'column')
+			));
+			
+			$successWrapper->appendChild( new XMLElement('div',
+				new XMLElement('div','<a class="button" href="../">Return to Configuration</a>'),
+				array('class'=>'column')
+			));
+			
+			$checkinFieldset->appendChild($successWrapper);
+			$this->Form->appendChild($checkinFieldset);			
+		}
+		else{
 		
-		$saveDiv = new XMLElement('div');
-		$saveDiv->setAttribute('class', 'actions');
-		$saveDiv->appendChild(Widget::Input('action[checkin]', __('Check-In!'), 'submit', array('accesskey' => 's')));
-		$this->Form->appendChild($saveDiv);			
-		
+			
+			
+			//pre fill information
+			
+			$versionData = $versioning->getLatestVersion() + 1;
+			
+			if(isset($_POST['checkin']['version'])){
+				$versionData = $_POST['checkin']['version'];
+			}
+			
+			$versionLabel = Widget::Label("Version");
+			$versionLabel->appendChild(Widget::Input("checkin[version]", strval($versionData)));
+	
+			$messageLabel = Widget::Label("Commit Message");
+			$messageLabel->appendChild(Widget::Input("checkin[message]", $_POST['checkin']['message']));
+			
+			//if errors
+			
+			if(isset($_POST['error']['version'])){
+				$versionLabel->setAttribute('class','invalid');
+				
+				$versionError = "Please enter a version number (Current Version = ".$versioning->getLatestVersion().')';
+				switch($_POST['error']['version']){
+					case 'invalid':
+						$versionError='Invalid Version Number, must be a number (Current Version = '.$versioning->getLatestVersion().')';
+						break;
+					case 'less-than-version':
+						$versionError='Version already exists or is less than current version( Current Version = '.$versioning->getLatestVersion().')';
+						break;
+				}
+				
+				$versionLabel->appendChild(new XMLElement('p',$versionError));
+			}
+			
+			if(isset($_POST['error']['message'])){
+				$messageLabel->setAttribute('class','invalid');
+				$messageLabel->appendChild(new XMLElement('p','Please enter a commit message'));
+			}
+			
+			
+			$columnWrapper = new XMLElement('div','',array('class'=>'two columns'));
+			$columnWrapper->appendChild(new XMLElement('div',$versionLabel,array('class'=>'column')));
+			$columnWrapper->appendChild(new XMLElement('div',$messageLabel,array('class'=>'column')));
+			
+			$checkinFieldset->appendChild($columnWrapper);
+			$this->Form->appendChild($checkinFieldset);
+			
+			$saveDiv = new XMLElement('div');
+			$saveDiv->setAttribute('class', 'actions');
+			$saveDiv->appendChild(Widget::Input('action[checkin]', __('Check-In!'), 'submit', array('accesskey' => 's')));
+			$this->Form->appendChild($saveDiv);
+		}
 	}
 }
 

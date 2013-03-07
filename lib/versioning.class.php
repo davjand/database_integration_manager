@@ -84,7 +84,7 @@ class DIM_Versioning extends DIM_Base {
 		$sql = "SELECT version FROM tbl_dim_versions ORDER BY version DESC LIMIT 1";
 		$latestVersion = $this->database->query($sql, RETURN_VALUE, true);
 
-		if(!$latestVersion) {
+		if(empty($latestVersion)) {
 			$latestVersion = "0";
 		}
 		

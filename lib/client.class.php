@@ -74,11 +74,7 @@ class DIM_Client extends DIM_Base {
 			true/false - depending on success or failure
 	*/
 	public function requestCheckin(&$error, $newVersion, $commitMessage) {
-		
-		//auto generate if needed
-		if(empty($newVersion)){
-			$newVersion = $versioning->getLatestVersion() + 1;	
-		}
+
 		
 		$config = $this->getConfiguration();
 		$versioning = new DIM_Versioning();

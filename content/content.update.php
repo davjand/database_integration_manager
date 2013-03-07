@@ -41,7 +41,7 @@ class contentExtensionDatabase_integration_managerUpdate extends AdministrationP
 	*/
     public function build() {
         parent::build();
-        $this->setTitle('Symphony - DIM Log');
+        $this->setTitle('Symphony - Database Updater');
 		
     }
 
