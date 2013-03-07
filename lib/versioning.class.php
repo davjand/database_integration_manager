@@ -57,7 +57,7 @@ class DIM_Versioning extends DIM_Base {
 			$newVersion = $currentVersion + 1;
 		}
 		
-		$commitMessage = Database_IO::sanitize($commitMessage, 3);
+		$commitMessage = $this->database->sanitize($commitMessage, 3);
 		
 		//see if needs updating or inserting
 		$findSql = "SELECT * FROM tbl_dim_versions WHERE `version`={$newVersion}";
