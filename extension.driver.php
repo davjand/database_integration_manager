@@ -66,6 +66,32 @@
 			}	
 		}
 		
+		public function checkWritableDirectories(){
+			
+			$dir = array();
+			
+			if(!is_writable(DOCROOT.'/data')){
+				array_push($dir, DOCROOT.'/data');
+			}
+			if (!is_writable(MANIFEST.'/dim')) {
+			    array_push($dir, MANIFEST.'/dim');
+			}
+			//cache folder
+			if (!is_writable(MANIFEST.'/dim/g_cache')) {
+			    array_push($dir, MANIFEST.'/dim/g_cache');
+			}
+			
+			if(count($dir) > 0){
+				$error = "Database Integration Manager Directories not writable: ";
+				foreach($dir as $d){
+					$error = $error.$d." , ";
+				}
+				
+				throw new Exception($error);
+			}
+			
+		}
+		
 
 		
 		/*
@@ -165,6 +191,11 @@
 			Adds an alert to the administration pages if DIM is installed but not configured.
 		*/
 		public function appendAlerts($context) {
+			
+			$this->createFolders();//just to be on the safe side
+			
+			$this->checkWritableDirectories();
+		
 			if(!$this->config->isExtensionConfigured()) {
 				Administration::instance()->Page->pageAlert(
 					__('Database Integration Manager is installed but not configured. <a href=\'' . SYMPHONY_URL . '/extension/database_integration_manager\'>Configure it now</a>.'),
