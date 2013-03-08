@@ -66,7 +66,7 @@ DIM provides a method of locking the database structure when a user is making ch
 
 ### Using Git
 
-> git submodule add git@github.com:davjand/database_integration_manager extensions/database_integration_manager
+``` git submodule add git@github.com:davjand/database_integration_manager extensions/database_integration_manager
 
 
 ## Configuration
@@ -102,7 +102,7 @@ The data folder should not be *gitignored* as this is used to store the version 
 
 To perform an update from a deploy script the url that needs to be called is as follows:
 
-> /extension/database_integration_manager/server/index.php?action=update&email={USER EMAIL}&auth-key={AUTH KEY}
+``` /extension/database_integration_manager/server/index.php?action=update&email={USER EMAIL}&auth-key={AUTH KEY}
 
 
 ## FAQ
