@@ -224,12 +224,29 @@
 						$stateManager = new DIM_StateManager("client");
 						if(!$stateManager->isCheckedOut()) {
 							// clear out the blueprints
-							$navigation["navigation"][200] = array();							
+							$navigation["navigation"][200] = array();	
+							
+							//remove extensions menu item
+							foreach($navigation["navigation"][100]['children'] as $key => $val){
+								if($val['link']=='/system/extensions/'){
+									$navigation["navigation"][100]['children'][$key]['visible']='no';
+								}
+							}
 						}
 						break;
+						
 					case "server":						
 						// clear out the blueprints
 						$navigation["navigation"][200] = array();
+						
+						//remove extensions menu item
+						foreach($navigation["navigation"][100]['children'] as $key => $val){
+							if($val['link']=='/system/extensions/'){
+								$navigation["navigation"][100]['children'][$key]['visible']='no';
+							}
+						}
+						
+						
 						break;
 					case "disabled":
 						
