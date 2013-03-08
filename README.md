@@ -1,7 +1,7 @@
 Database Integration Manager
 ============================
 
-- Version: 0.1
+- Version: 0.2
 - Authors: David Anderson (dave@veodesign.co.uk) & Tom Johnson (jetbackwards@gmail.com)
 - Website: http://veodesign.co.uk
 - Github: https://github.com/davjand/database_integration_manager/
@@ -9,6 +9,11 @@ Database Integration Manager
 - Requirements: Symphony 2.3
 
 ## Release Notes
+
+Version 0.2
+- Extension still beta
+- Directory permission checking added
+- You now cannot access extensions without being 'checked out'
 
 Version 0.1
 - Initial Release
