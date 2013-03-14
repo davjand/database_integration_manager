@@ -143,7 +143,7 @@ class Database_IO {
 				
 			case 1:
 				// just escape the string
-				$sql =  mysql_real_escape_string($sql);
+				$sql =  mysqli_real_escape_string($sql);
 				break;
 		}
 		return $sql;	
