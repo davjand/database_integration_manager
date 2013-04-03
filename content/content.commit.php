@@ -94,7 +94,7 @@ class contentExtensionDatabase_integration_managerCommit extends AdministrationP
 		
 		
 		if(!$error){
-			if($client->requestCheckin(&$errorStr, $_POST['checkin']['version'], $_POST['checkin']['message'])) {
+			if($client->requestCheckin($errorStr, $_POST['checkin']['version'], $_POST['checkin']['message'])) {
 				
 				$_POST['success']='success';
 				redirect('../?message=commit-success');

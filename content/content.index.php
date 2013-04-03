@@ -115,19 +115,21 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		Constructs the index page via nested XMLElements and populates $this->Form.
 	*/
 	private function __indexPage() {
+
 		$link = new XMLElement('link');
 		$this->addElementToHead($link, 500);	
 		
 		$this->setPageType('form');
 		$this->appendSubheading(__('Database Integration Manager'));		
-
+		
 		// Checkout/in?
 		if(isset($_GET["try"])) {
 			$client = new DIM_Client();
 			$errorStr = "";
 			switch($_GET["try"]) {
 				case "checkout":
-					if($client->requestCheckout(&$errorStr)) {
+					
+					if($client->requestCheckout($errorStr)) {
 						redirect('?message=checkout-success');			
 					}
 					else {
