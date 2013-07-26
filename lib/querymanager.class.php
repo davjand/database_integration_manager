@@ -212,7 +212,6 @@ class DIM_QueryManager extends DIM_Base {
 		$database = new Database_IO($this->getDatabaseSettings());
 		
 		while($update = array_pop($updateCache)) {
-			//echo base64_decode($update["queries"]);
 			
 			$database->query(base64_decode($update["queries"]), MULTI_QUERY, true);
 			

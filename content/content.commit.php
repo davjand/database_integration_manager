@@ -182,7 +182,7 @@ class contentExtensionDatabase_integration_managerCommit extends AdministrationP
 			
 			
 			$columnWrapper = new XMLElement('div','',array('class'=>'two columns'));
-			$columnWrapper->appendChild(new XMLElement('div',$versionLabel,array('class'=>'column')));
+			$columnWrapper->appendChild(new XMLElement('div',$versionLabel,array('class'=>'column', "readonly"=>'readonly')));
 			$columnWrapper->appendChild(new XMLElement('div',$messageLabel,array('class'=>'column')));
 			
 			$checkinFieldset->appendChild($columnWrapper);

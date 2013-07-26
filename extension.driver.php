@@ -23,7 +23,11 @@
 			Symphony Override - see http://getsymphony.com/learn/api/2.3/toolkit/extension/#install
 		*/
 		public function install() {
-			// MODIFYING THIS? ADD A VERSION UPDATE IN THE update() FUNCTION!
+			/*
+			
+				MODIFYING THIS? ADD A VERSION UPDATE IN THE update() FUNCTION!
+				
+			*/
 		
 			try {
 				Symphony::Database()->query('CREATE TABLE IF NOT EXISTS tbl_dim_versions (

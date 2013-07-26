@@ -40,6 +40,15 @@ class Database_IO {
 		$this->tablePrefix = $databaseParams["tbl_prefix"];
 	}
 	
+	/**
+	
+		getConnection
+		
+	*/
+	public function getConnection(){
+		return $this->dbConnection;
+	}
+	
 	/*
 		->query($sql, $returnMode)
 		Run a query against the current database.
@@ -59,23 +68,49 @@ class Database_IO {
 		
 		
 		if($returnMode == MULTI_QUERY){
-			$rawRet = $this->dbConnection->multi_query($sql);
-			if(!$rawRet){
-				print_r(mysql_error());
+		
+			/*
+				Execute the query
+				
+			*/
+			if(!$rawRet = $this->dbConnection->multi_query($sql)){
+				throw new Exception('There was an error running the query [' . $this->dbConnection->error . "]");
 			}
-			return $rawRet;
+			
+			/*
+				Get and free the responses
+			*/
+			$data = array(); $i = 0;
+			do {
+	        	$data[$i] = array();
+				if ($result = $this->dbConnection->store_result()) {
+					$j = 0;
+	            	while ($row = $result->fetch_row()) {
+	            	    $data[$i][$j] = $row;
+	            	    $j++;
+					}
+					$result->free();
+					$i++;
+				}
+			} while ($this->dbConnection->next_result());
+			
+			return $data;
+			return true;
 		}
 		else{
-			$rawRet = $this->dbConnection->query($sql);
+
+			if(!$rawRet = $this->dbConnection->query($sql)){
+				throw new Exception('There was an error running the query [' . $this->dbConnection->error . '] sql: ['.$sql.']');
+			}
 			
 			switch($returnMode) {
 				case RETURN_VALUE:
 				
-					if(!$rawRet && $rawRet!=null){
-						return null;
+					if($rawRet && $rawRet!=null && is_array($rawRet) ){
+						$proc = $rawRet->fetch_array();
+						return $proc[0];	
 					}
-					$proc = $rawRet->fetch_array();
-					return $proc[0];
+					return null;
 					break;
 				case RETURN_OBJECTS:
 				

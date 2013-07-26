@@ -27,20 +27,55 @@ class DIM_Authenticator extends DIM_Base {
 			true/false based on whether authentication was succesful
 	*/
 	public function userAuthenticates($email, $authKey) {
-		$cfg = $this->getConfiguration();
-		if($cfg && is_array($cfg["server"]["users"])) {
-			foreach($cfg["server"]["users"] as $u) {
-				if($email == $u['email'] && $authKey == $u['auth-key']) {
-					return true;
-				}			
-			}
-			// we haven't matched yet
+		return $this->authenticateUserWithConfig($email,$authKey,$this->getConfiguration());
+	}
+	
+	
+	
+	/**
+	
+		Function to authenticate the user against the config file
+		
+	*/
+	public function authenticateUserWithConfig($email,$authKey,$config){
+		
+		if(!$config || !is_array($config) || !is_array($config['mode'])){
 			return false;
 		}
-		else {
+		$MODE = $config['mode']['mode'];
+		
+		/*
+			Server Mode
+		*/
+		if($MODE == 'client'){
+			$user = $config['client'];
+			if($user['user-email'] == $email && $user['auth-key'] == $authKey){
+				return true;
+			}
 			return false;
+		
+		
+		}
+		/*
+			Server Mode
+		*/
+		else{
+	
+			if(is_array($config["server"]["users"])) {
+				foreach($config["server"]["users"] as $u) {
+					if($email == $u['email'] && $authKey == $u['auth-key']) {
+						return true;
+					}			
+				}
+				// we haven't matched yet
+				return false;
+			}
+			else {
+				return false;
+			}	
 		}
 	}
+	
 }
 
 ?>
