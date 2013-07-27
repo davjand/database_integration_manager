@@ -64,6 +64,26 @@
 			//to finish
 			$dbC->dropAllTables();
 		}
+		
+		public function testNoExceptionWhenEmptyQuery(){
+			$dbC = new DatabaseTestingConnector();
+			$databaseIO = new Database_IO($dbC->getConfig());
+			$dbC->dropAllTables();
+			
+			$flag = false;
+			
+			try{
+				$databaseIO->query('',MULTI_QUERY);
+				$databaseIO->query('',RETURN_VALUE);
+				$databaseIO->query('',RETURN_OBJECT);
+			}
+			catch(Exception $e){
+				$flag  = true;
+			}
+			
+			$this->assertEqual($flag,false);
+			
+		}
 	}
 	
 ?>

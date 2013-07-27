@@ -59,7 +59,12 @@ class Database_IO {
 			$suppressSanitize - allows suppression of auto-sanitize, in case it's already been done (optional, defaults to false)
 	*/
 	public function query($sql, $returnMode, $suppressSanitize = false) {
-	
+		
+		
+		if(!$sql || count($sql) < 1){
+			return false;
+		}
+		
 		// transform the table prefixes first..
 		$sql = str_replace("tbl_", $this->tablePrefix, $sql);
 		
@@ -107,33 +112,35 @@ class Database_IO {
 			
 			switch($returnMode) {
 				case RETURN_VALUE:
-					if($rawRet && $rawRet!=null ){
+				
+					if($rawRet && $rawRet != null && is_object($rawRet) ){
 						
 						$proc = $rawRet->fetch_array();
 						if(is_array($proc)){
 							return $proc[0];
 						}
-						return null;	
+						return array();	
 					}
-					return null;
 					break;
 				case RETURN_OBJECTS:
 				
-					if(!$rawRet){
-						return array();
-					}
+					if($rawRet && $rawRet != null && is_object($rawRet) ){
 					
-					$objects = array();
-					while($newObj = $rawRet->fetch_object()) {
-						$objects[] = $newObj;				
+						$objects = array();
+						while($newObj = $rawRet->fetch_object()) {
+							$objects[] = $newObj;				
+						}
+						return $objects;
 					}
-					return $objects;
 					break;
+					
 				case RETURN_NONE:
 				default:
 					return null;
 				break;
-			}	
+			}
+			
+			return array();	
 		}
 		
 		
