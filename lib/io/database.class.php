@@ -7,19 +7,20 @@
 	causes conflicts!
 */
 
+/*
+	query constants
+*/
+
+define('RETURN_VALUE',"1");
+define('RETURN_OBJECTS',"2");
+define('RETURN_NONE',"3");
+define("MULTI_QUERY","99");
+
 class Database_IO {
 
 	var $dbConnection = null;
 	var $tablePrefix = "";
 
-	/*
-		query constants
-	*/
-	const RETURN_VALUE = "1";
-	const RETURN_OBJECTS = "2";
-	const RETURN_NONE = "3";
-	const MULTI_QUERY = "99";
-	
 	
 	/*
 		->__construct($databaseParams)
