@@ -98,17 +98,21 @@ class Database_IO {
 			return true;
 		}
 		else{
-
+			
 			if(!$rawRet = $this->dbConnection->query($sql)){
 				throw new Exception('There was an error running the query [' . $this->dbConnection->error . '] sql: ['.$sql.']');
 			}
+
 			
 			switch($returnMode) {
 				case RETURN_VALUE:
-				
-					if($rawRet && $rawRet!=null && is_array($rawRet) ){
+					if($rawRet && $rawRet!=null ){
+						
 						$proc = $rawRet->fetch_array();
-						return $proc[0];	
+						if(is_array($proc)){
+							return $proc[0];
+						}
+						return null;	
 					}
 					return null;
 					break;
