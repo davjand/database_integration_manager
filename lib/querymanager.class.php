@@ -44,9 +44,13 @@ class DIM_QueryManager extends DIM_Base {
 			// only structural changes, no SELECT statements
 			if (!preg_match('/^(insert|update|delete|create|drop|alter|rename)/i', $query)) return true;
 			// un-tracked tables (sessions, cache, authors)
-			if (preg_match("/{$tblPrefix}(authors|cache|forgotpass|sessions|tracker_activity|symphony_cart|search_index|search_index_entry_keywords|search_index_keywords|search_index_logs)/i", $query)) return true;
+			if (preg_match("/{$tblPrefix}(authors|cache|forgotpass|sessions|tracker_activity|symphony_cart)/i", $query)) return true;
 			// content updates in tbl_entries (includes tbl_entries_fields_*)
 			if (preg_match('/^(insert|delete|update)/i', $query) && preg_match("/({$tblPrefix}entries)/i", $query)) return true;
+			
+			//content update in search index / similar
+			if (preg_match("/{$tblPrefix}(search_index|search_index_entry_keywords|search_index_keywords|search_index_logs)/i", $query) && preg_match('/^(insert|delete|update)/i', $query)) return true;
+			
 			// append query delimeter if it doesn't exist
 			if (!preg_match('/;$/', $query)) $query .= ";";			
 		
