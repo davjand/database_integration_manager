@@ -10,12 +10,14 @@ class DIM_StateManager {
 		where we will hold the state for now
 	*/
 	var $STATE_FILE;
+	private $currentState;
 
 	/*
 		->__construct()
 	*/
 	public function __construct($mode) {
 		$this->STATE_FILE = MANIFEST."/dim/{$mode}_state.php";
+		$this->currentState = $this->readState();
 	}
 	
 	/*
@@ -24,7 +26,7 @@ class DIM_StateManager {
 			true if the system is checked in, false if not
 	*/
 	public function isCheckedIn() {
-		return (!$this->readState());
+		return (!$this->currentState);
 	}
 	
 	/*
@@ -33,7 +35,7 @@ class DIM_StateManager {
 			true if the system is checked out, false if not
 	*/
 	public function isCheckedOut() {
-		return $this->readState();
+		return $this->currentState;
 	}
 	
 	/*
@@ -42,6 +44,7 @@ class DIM_StateManager {
 	*/
 	public function checkOut() {
 		$this->writeState(1);
+		$this->currentState = $this->readState();
 	}
 	
 	/*
@@ -50,6 +53,7 @@ class DIM_StateManager {
 	*/
 	public function checkIn() {
 		$this->writeState(0);
+		$this->currentState = $this->readState();
 	}
 	
 	/*

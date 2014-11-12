@@ -186,8 +186,20 @@
 			Marshalls the query into the querymanager for processing
 		*/
 		public function processQuery($context) {
-			$queryManager = new DIM_QueryManager();
-			$queryManager->logNewQuery(trim($context["query"]));
+			
+			/*
+				check actually needs to process query
+				
+				If client and checked out
+			*/
+				
+			if($this->config->getExtensionMode() == 'client'){
+				$stateManager = new DIM_StateManager("client");
+				if($stateManager->isCheckedOut()) {
+					$queryManager = new DIM_QueryManager();
+					$queryManager->logNewQuery(trim($context["query"]));
+				}
+			}
 		}
 		
 		/*

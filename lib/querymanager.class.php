@@ -20,6 +20,8 @@ class DIM_QueryManager extends DIM_Base {
 	public function __construct() {
 		$this->databaseInfo = $this->getDatabaseSettings();
 		$this->logger = new DIM_Logger();
+		
+		parent::__construct();
 	}
 	
 	/*

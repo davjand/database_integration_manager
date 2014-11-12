@@ -28,7 +28,17 @@ class DIM_Base {
 		Needs to be stored in the manifest folder.
 	*/
 	var $_CONFIG_FILE = DIM_CONFIG;
-
+	private $config = array();
+	
+	
+	/*
+		constructor
+	*/
+	public function __construct() {
+		$this->config = $this->loadConfiguration();
+	}
+	
+	
 	/*
 		->isExtensionConfigured()
 		Returns true if a current configuration exists
@@ -56,13 +66,24 @@ class DIM_Base {
 		return $settings["database"];
 	}
 	
+	
 	/*
 		->getConfiguration()
 		Gets the extension configuration.
 		@returns
 			array/null - the configuration, if it exists.
 	*/
-	public function getConfiguration() {
+	public function getConfiguration(){
+		return $this->config;
+	}
+	
+	/*
+		->loadConfiguration()
+		Loads the extension config
+		@returns
+			array/null - the configuration, if it exists.
+	*/
+	public function loadConfiguration() {
 		if(self::isExtensionConfigured()) {
 			include(self::getExtensionConfigPath());
 			return $savedSettings;
@@ -100,6 +121,7 @@ class DIM_Base {
 		
 		// just save stuff for now using var_export - in the future we could maybe do some merging?
 		file_put_contents($this->getExtensionConfigPath(), "<?php \$savedSettings = " . var_export($_POST["settings"], true) . "; ?>");	
+		$this->config = $this->loadConfiguration();//refresh config
 	
 	}
 	

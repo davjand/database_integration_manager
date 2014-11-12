@@ -21,6 +21,8 @@ class DIM_Client extends DIM_Base {
 	public function __construct() {
 		$this->state = new DIM_StateManager("client");
 		$this->logger = new DIM_Logger();
+		
+		parent::__construct();
 	}
 
 	/*
@@ -35,7 +37,7 @@ class DIM_Client extends DIM_Base {
 		
 		$config = $this->getConfiguration();
 		$versioning = new DIM_Versioning();
-		
+				
 		$requestData = array(
 				"action" => "checkout",
 				"email" => $config["client"]["user-email"],

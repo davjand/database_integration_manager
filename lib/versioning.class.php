@@ -18,6 +18,8 @@ class DIM_Versioning extends DIM_Base {
 	*/
 	public function __construct() {
 		$this->database = new Database_IO($this->getDatabaseSettings());
+		
+		parent::__construct();
 	}
 	
 	/*

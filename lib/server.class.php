@@ -27,6 +27,8 @@ class DIM_Server extends DIM_Base {
 		$this->versioning = new DIM_Versioning();
 		$this->state = new DIM_StateManager("server");
 		$this->logger = new DIM_Logger();
+		
+		parent::__construct();
 	}
 	
 	/*

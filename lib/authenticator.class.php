@@ -13,7 +13,7 @@ class DIM_Authenticator extends DIM_Base {
 		->__construct()
 	*/
 	public function __construct() {
-
+		parent::__construct();
 	}
 
 	/*
