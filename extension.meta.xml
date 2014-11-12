@@ -2,7 +2,7 @@
 <extension id="database_integration_manager" status="unreleased" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>Database Integration Manager</name>
 	<description>Manages database versioning and multi-developer working across many local work databases.</description>
-	<url type="discuss">http://www.devjet.co.uk</url>
+	<url type="discuss">http://www.veodesign.co.uk</url>
 	<types>
 		<type>Custom</type>
 	</types>
@@ -17,6 +17,9 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="0.3" date="2014-05-27" min="2.3.x">
+			Symphony 2.4 compatibility
+		</release>
 		<release version="0.2" date="2013-07-26" min="2.3.x" max="2.3.1">
 			Multi Query Bugfixes. Symphony Tests added
 		</release>

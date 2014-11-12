@@ -327,7 +327,7 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		$stateManager = new DIM_StateManager("server");
 		$stateText = ($stateManager->isCheckedOut() ? "Checked Out" : "Checked In");
 		
-		$serverFieldset->appendChild(new XMLElement('div', "<a class='button' href='log'>View Log</a> &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame")));	
+		$serverFieldset->appendChild(new XMLElement('div', "<a class='button' href='log'>View Log</a> &nbsp;&nbsp;&nbsp;&nbsp; Current State: <strong>{$stateText}</strong>", array("class" => "frame", "style"=>"padding: 20px;")));	
 		
 		$this->Form->appendChild(new XMLElement('script', 
 			'jQuery(document).ready(function(){
@@ -336,16 +336,22 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 						collapsible: true
 					});
 					
-					jQuery("li.field-user.instance").addClass("collapsed").find("div.content").hide();
+					//jQuery("li.field-user.instance").addClass("collapsed").find("div.content").hide();
 					
 				});				
 			'));		
 		
-		$serverUserFrame = new XMLElement('div', null, array('class' => 'frame'));
+		$serverUserFrame = new XMLElement('div');
+		
+		$usersWrapper = new XMLElement('div',null, array(
+			'class'=>'frame',
+			'id'=>'users-duplicator'
+		));
+		$usersWrapper->setAttribute('data-add', __('Add User'));
+		$usersWrapper->setAttribute('data-remove', __('Remove User'));
+		
+		
 		$ol = new XMLElement('ol');
-		$ol->setAttribute('id', 'users-duplicator');
-		$ol->setAttribute('data-add', __('Add User'));
-		$ol->setAttribute('data-remove', __('Remove User'));
 
 		if(is_array($savedSettings["server"]["users"])) {
 			foreach($savedSettings["server"]["users"] as $u) {
@@ -356,7 +362,8 @@ class contentExtensionDatabase_integration_managerIndex extends AdministrationPa
 		// append the template
 		$ol->appendChild($this->__getUserInputBlock(array(), true));
 		
-		$serverUserFrame->appendChild($ol);
+		$usersWrapper->appendChild($ol);
+		$serverUserFrame->appendChild($usersWrapper);
 		$serverFieldset->appendChild($serverUserFrame);
 		
 		$this->Form->appendChild($serverFieldset);
