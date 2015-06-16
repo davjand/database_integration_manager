@@ -167,6 +167,7 @@
 					'delegate'	=> 'NavigationPreRender',
 					'callback'	=> 'modifyNavigation'
 				),
+				
 				array(
 					'page' => '/frontend/',
 					'delegate' => 'PostQueryExecution',
@@ -192,6 +193,11 @@
 				
 				If client and checked out
 			*/
+			
+			if(strpos($context['page'][0],'frontend') !== FALSE ){
+				return;
+			}
+
 				
 			if($this->config->getExtensionMode() == 'client'){
 				$stateManager = new DIM_StateManager("client");
