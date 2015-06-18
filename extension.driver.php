@@ -167,12 +167,6 @@
 					'delegate'	=> 'NavigationPreRender',
 					'callback'	=> 'modifyNavigation'
 				),
-				
-				array(
-					'page' => '/frontend/',
-					'delegate' => 'PostQueryExecution',
-					'callback' => 'processQuery'
-				),
 				array(
 					'page' => '/backend/',
 					'delegate' => 'PostQueryExecution',

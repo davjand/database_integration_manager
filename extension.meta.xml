@@ -17,6 +17,9 @@
 		</author>
 	</authors>
 	<releases>
+		<release version="0.31" date="2015-06-18" min="2.3.x">
+			Removed frontend query watching
+		</release>
 		<release version="0.3" date="2014-05-27" min="2.3.x">
 			Symphony 2.4 compatibility
 		</release>
