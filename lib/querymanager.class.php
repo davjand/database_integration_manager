@@ -13,6 +13,8 @@ class DIM_QueryManager extends DIM_Base {
 
 	var $databaseInfo = null;
 	var $logger = null;
+
+	var $stateManager;
 	
 	/*
 		->__construct()
@@ -20,6 +22,8 @@ class DIM_QueryManager extends DIM_Base {
 	public function __construct() {
 		$this->databaseInfo = $this->getDatabaseSettings();
 		$this->logger = new DIM_Logger();
+
+		$this->stateManager = new DIM_StateManager("client");;
 		
 		parent::__construct();
 	}
@@ -31,10 +35,8 @@ class DIM_QueryManager extends DIM_Base {
 			$query - the SQL query captured from Symphony
 	*/
 	public function logNewQuery($query) {
-		
-		$stateManager = new DIM_StateManager("client");
-		
-		if($this->getExtensionMode() == "client" && $stateManager->isCheckedOut()) {
+
+		if($this->getExtensionMode() == "client" && $this->stateManager->isCheckedOut()) {
 		
 			$tblPrefix = $this->databaseInfo["tbl_prefix"];
 		
